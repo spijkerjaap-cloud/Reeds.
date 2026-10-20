@@ -1,0 +1,667 @@
+<!doctype html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Anesthesie &amp; SPS Diorama</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Sora:wght@500;700&family=IBM+Plex+Mono:wght@500&display=swap">
+<style>
+  /* Layout: one 9:16 stage, centered and letterboxed; 3D canvas fills it, frosted card + pins float on top */
+  :root {
+    --ground: #f3f2ee;
+    --ink: #13213f;
+    --muted: #4c5a78;
+    --royal: #2747d6;
+    --teal: #12a3a0;
+    --green: #3fb36b;
+    --orange: #ff7a1a;
+    --glass: rgba(255, 255, 255, 0.55);
+    --font-display: "Sora", "Segoe UI", system-ui, sans-serif;
+    --font-data: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace;
+    color-scheme: light;
+  }
+  html, body { height: 100%; margin: 0; overflow: hidden; background: #dfe3ea; }
+  body { display: grid; place-items: center; font-family: var(--font-display); color: var(--ink); }
+  #stage { position: relative; overflow: hidden; background: var(--ground); container-type: inline-size; }
+  #stage canvas { display: block; width: 100% !important; height: 100% !important; }
+
+  .card {
+    position: absolute; left: 6cqw; right: 6cqw; top: 5.5cqw;
+    padding: 4.4cqw 5cqw 4.8cqw;
+    background: var(--glass);
+    backdrop-filter: blur(14px) saturate(1.4); -webkit-backdrop-filter: blur(14px) saturate(1.4);
+    border: 1px solid rgba(255,255,255,0.8);
+    border-radius: 5cqw;
+    box-shadow: 0 2cqw 6cqw rgba(19, 33, 63, 0.12);
+    opacity: 0; transform: translateY(-3cqw);
+    animation: cardIn 0.7s cubic-bezier(.2,1.4,.4,1) 0.9s forwards;
+  }
+  @keyframes cardIn { to { opacity: 1; transform: none; } }
+  .card-head { display: flex; align-items: center; gap: 2.4cqw; }
+  .live { width: 2.4cqw; height: 2.4cqw; border-radius: 50%; background: var(--orange); box-shadow: 0 0 0 0 rgba(255,122,26,.6); animation: pulse 1.6s infinite; flex: none; }
+  @keyframes pulse { 70% { box-shadow: 0 0 0 2.6cqw rgba(255,122,26,0); } 100% { box-shadow: 0 0 0 0 rgba(255,122,26,0); } }
+  .card h1 { margin: 0; font-size: 5.6cqw; font-weight: 700; letter-spacing: -0.02em; line-height: 1.1; }
+  .card h1 span { color: var(--royal); }
+  .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 3cqw; margin-top: 3.6cqw; }
+  .stat { display: flex; flex-direction: column; gap: 0.8cqw; min-width: 0; }
+  .stat b { font-family: var(--font-data); font-weight: 500; font-size: 6.2cqw; font-variant-numeric: tabular-nums; letter-spacing: -0.03em; }
+  .stat:nth-child(1) b { color: var(--royal); }
+  .stat:nth-child(2) b { color: var(--teal); }
+  .stat:nth-child(3) b { color: var(--green); }
+  .stat small { font-size: 2.6cqw; color: var(--muted); letter-spacing: 0.04em; text-transform: uppercase; line-height: 1.3; }
+
+  .pin {
+    position: absolute; left: 0; top: 0; pointer-events: none;
+    padding: 1.3cqw 2.6cqw; border-radius: 99px;
+    font-size: 2.9cqw; font-weight: 700; white-space: nowrap; color: #fff;
+    box-shadow: 0 1cqw 3cqw rgba(19,33,63,.2);
+    opacity: 0; transition: opacity .5s;
+  }
+  .pin::after { content: ""; position: absolute; left: 50%; bottom: -1.2cqw; width: 2.4cqw; height: 2.4cqw; background: inherit; transform: translateX(-50%) rotate(45deg); border-radius: 0.4cqw; z-index: -1; }
+  .pin small { font-weight: 500; opacity: .85; margin-left: 1cqw; }
+  .pin.or { background: var(--royal); }
+  .pin.sps { background: var(--teal); }
+  .pin.rec { background: var(--green); }
+  .pin.on { opacity: 1; }
+  @media (prefers-reduced-motion: reduce) { .card, .live { animation: none; opacity: 1; transform: none; } }
+</style>
+<script type="importmap">
+{ "imports": {
+  "three": "https://cdn.jsdelivr.net/npm/three@0.165.0/build/three.module.js",
+  "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.165.0/examples/jsm/"
+} }
+</script>
+</head>
+<body>
+<div id="stage">
+  <div class="card">
+    <div class="card-head"><i class="live"></i><h1>Anesthesie &amp; SPS <span>• Live</span></h1></div>
+    <div class="stats">
+      <div class="stat"><b id="s1">1.284</b><small>Patiënten onder narcose</small></div>
+      <div class="stat"><b id="s2">392</b><small>Sedaties door SPS</small></div>
+      <div class="stat"><b id="s3">48.610</b><small>Beademde teugen</small></div>
+    </div>
+  </div>
+  <div class="pin or" id="pinOR">Operatiekamer<small>anesthesie</small></div>
+  <div class="pin sps" id="pinSPS">SPS<small>sedatie op de MRI</small></div>
+  <div class="pin rec" id="pinREC">Recovery<small>uitslapen</small></div>
+</div>
+
+<script type="module">
+import * as THREE from "three";
+import { RoundedBoxGeometry } from "three/addons/geometries/RoundedBoxGeometry.js";
+import { EffectComposer } from "three/addons/postprocessing/EffectComposer.js";
+import { RenderPass } from "three/addons/postprocessing/RenderPass.js";
+import { GTAOPass } from "three/addons/postprocessing/GTAOPass.js";
+import { OutputPass } from "three/addons/postprocessing/OutputPass.js";
+
+const LOOP = 10;               // seconds, everything periodic in this
+const TAU = Math.PI * 2;
+const C = {
+  ground: 0xf3f2ee, slab: 0xe9e7e1, edge: 0xd9d6ce, road: 0xcfd4dc, white: 0xfbfbf9,
+  royal: 0x2747d6, royalDark: 0x1a2f99, teal: 0x12a3a0, tealLight: 0x9fdcd6, green: 0x3fb36b, greenDark: 0x23824a,
+  orange: 0xff7a1a, skin: 0xf0c6a4, skin2: 0xc68b62, dark: 0x1d2742, screen: 0x0d1a33, glass: 0xcfe9ff,
+};
+
+/* ---------- renderer / stage ---------- */
+const stage = document.getElementById("stage");
+const renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.05;
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+stage.appendChild(renderer.domElement);
+
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(C.ground);
+const camera = new THREE.PerspectiveCamera(28, 9 / 16, 1, 300);
+
+scene.add(new THREE.HemisphereLight(0xffffff, 0xc9d3e6, 1.5));
+const sun = new THREE.DirectionalLight(0xfff4e6, 2.6);
+sun.position.set(14, 26, 12);
+sun.castShadow = true;
+sun.shadow.mapSize.set(2048, 2048);
+Object.assign(sun.shadow.camera, { left: -18, right: 18, top: 18, bottom: -18, near: 1, far: 70 });
+sun.shadow.radius = 5;
+sun.shadow.bias = -0.0004;
+sun.shadow.normalBias = 0.02;
+scene.add(sun);
+
+const composer = new EffectComposer(renderer);
+composer.addPass(new RenderPass(scene, camera));
+const gtao = new GTAOPass(scene, camera, 1080, 1920);
+gtao.updateGtaoMaterial({ radius: 0.6, distanceExponent: 1.5, thickness: 1, scale: 1 });
+gtao.blendIntensity = 0.85;
+composer.addPass(gtao);
+composer.addPass(new OutputPass());
+
+function resize() {
+  const w = Math.min(innerWidth, innerHeight * 9 / 16);
+  const h = w * 16 / 9;
+  stage.style.width = w + "px";
+  stage.style.height = h + "px";
+  const pr = Math.min(1080 / w, 2.5);
+  renderer.setPixelRatio(pr);
+  renderer.setSize(w, h, false);
+  composer.setPixelRatio(pr);
+  composer.setSize(w, h);
+}
+addEventListener("resize", resize);
+resize();
+
+/* ---------- building blocks ---------- */
+const mats = new Map();
+function mat(color, emissive = 0) {
+  const key = color + ":" + emissive;
+  if (!mats.has(key)) mats.set(key, new THREE.MeshStandardMaterial({
+    color, roughness: 0.55, metalness: 0.02,
+    emissive: emissive ? color : 0x000000, emissiveIntensity: emissive,
+  }));
+  return mats.get(key);
+}
+const geos = new Map();
+function box(w, h, d, color, opts = {}) {
+  const r = Math.min(opts.r ?? 0.08, w / 2.01, h / 2.01, d / 2.01);
+  const key = [w, h, d, r].join("|");
+  if (!geos.has(key)) geos.set(key, new RoundedBoxGeometry(w, h, d, 3, r));
+  const m = new THREE.Mesh(geos.get(key), opts.material ?? mat(color, opts.emissive));
+  m.castShadow = opts.shadow !== false;
+  m.receiveShadow = true;
+  if (opts.at) m.position.set(...opts.at);
+  return m;
+}
+const G = (...kids) => { const g = new THREE.Group(); kids.forEach(k => g.add(k)); return g; };
+const at = (o, x, y, z, ry = 0) => { o.position.set(x, y, z); o.rotation.y = ry; return o; };
+
+// rise-in with overshoot: every prop is registered with a delay
+const builders = [];
+function place(obj, x, y, z, ry = 0, delay) {
+  const holder = new THREE.Group();
+  holder.position.set(x, y, z);
+  holder.rotation.y = ry;
+  holder.add(obj);
+  scene.add(holder);
+  const d = delay ?? (0.08 + Math.min(0.55, Math.hypot(x, z) / 28) + Math.random() * 0.12);
+  builders.push({ holder, y, d });
+  holder.position.y = y - 6;
+  holder.scale.setScalar(0.001);
+  return obj;
+}
+const easeOutBack = (t) => { const c1 = 2.2, c3 = c1 + 1; return 1 + c3 * Math.pow(t - 1, 3) + c1 * Math.pow(t - 1, 2); };
+
+/* ---------- props ---------- */
+function person(scrub, cap, skin = C.skin) {
+  const g = new THREE.Group();
+  const legL = box(0.16, 0.5, 0.18, scrub, { at: [-0.1, 0.25, 0], r: 0.06 });
+  const legR = box(0.16, 0.5, 0.18, scrub, { at: [0.1, 0.25, 0], r: 0.06 });
+  [legL, legR].forEach(l => { l.geometry = l.geometry.clone(); l.geometry.translate(0, -0.25, 0); l.position.y = 0.5; });
+  const body = box(0.42, 0.55, 0.26, scrub, { at: [0, 0.78, 0], r: 0.1 });
+  const head = box(0.26, 0.28, 0.26, skin, { at: [0, 1.22, 0], r: 0.1 });
+  const hat = box(0.28, 0.1, 0.28, cap, { at: [0, 1.38, 0], r: 0.05 });
+  const mask = box(0.2, 0.1, 0.04, C.white, { at: [0, 1.18, 0.14], r: 0.02 });
+  g.add(legL, legR, body, head, hat, mask);
+  g.userData = { legL, legR };
+  return g;
+}
+function walkLegs(p, phase) {
+  const s = Math.sin(phase) * 0.5;
+  p.userData.legL.rotation.x = s;
+  p.userData.legR.rotation.x = -s;
+}
+
+function monitor(h = 1.5) {
+  const g = new THREE.Group();
+  g.add(box(0.08, h, 0.08, C.edge, { at: [0, h / 2, 0], r: 0.03 }));
+  g.add(box(0.5, 0.08, 0.5, C.edge, { at: [0, 0.04, 0], r: 0.03 }));
+  g.add(box(0.8, 0.56, 0.12, C.dark, { at: [0, h + 0.2, 0], r: 0.06 }));
+  g.add(box(0.7, 0.46, 0.02, C.screen, { at: [0, h + 0.2, 0.065], r: 0.01, shadow: false }));
+  const bars = [];
+  for (let i = 0; i < 7; i++) {
+    const b = box(0.06, 0.2, 0.02, C.green, { at: [-0.27 + i * 0.09, h + 0.2, 0.08], r: 0.01, emissive: 1.4, shadow: false });
+    bars.push(b); g.add(b);
+  }
+  const dot = box(0.07, 0.07, 0.02, C.orange, { at: [0.28, h + 0.36, 0.08], r: 0.02, emissive: 1.5, shadow: false });
+  g.add(dot);
+  g.userData = { bars, dot, baseY: h + 0.2 };
+  monitors.push(g);
+  return g;
+}
+const monitors = [];
+
+function bed(withPatient = true, drape = C.green) {
+  const g = new THREE.Group();
+  g.add(box(2.2, 0.12, 0.95, C.edge, { at: [0, 0.55, 0] }));
+  [[-0.95, -0.38], [0.95, -0.38], [-0.95, 0.38], [0.95, 0.38]].forEach(([x, z]) => {
+    g.add(box(0.07, 0.5, 0.07, C.edge, { at: [x, 0.27, z], r: 0.03 }));
+    g.add(box(0.14, 0.12, 0.14, C.dark, { at: [x, 0.06, z], r: 0.05 }));
+  });
+  g.add(box(2.1, 0.16, 0.85, C.white, { at: [0, 0.69, 0] }));
+  g.add(box(0.45, 0.12, 0.6, C.white, { at: [-0.78, 0.82, 0], r: 0.06 }));
+  if (withPatient) {
+    g.add(box(0.26, 0.24, 0.26, C.skin, { at: [-0.8, 0.95, 0], r: 0.1 }));
+    g.add(box(1.5, 0.22, 0.7, drape, { at: [0.25, 0.86, 0], r: 0.1 }));
+  }
+  return g;
+}
+
+function ivPole(bagColor = C.white) {
+  const g = new THREE.Group();
+  g.add(box(0.5, 0.06, 0.5, C.edge, { at: [0, 0.03, 0], r: 0.03 }));
+  g.add(box(0.05, 2.2, 0.05, C.edge, { at: [0, 1.1, 0], r: 0.02 }));
+  g.add(box(0.5, 0.04, 0.04, C.edge, { at: [0, 2.2, 0], r: 0.02 }));
+  g.add(box(0.22, 0.34, 0.08, bagColor, { at: [0.18, 1.98, 0], r: 0.05 }));
+  const drop = box(0.04, 0.06, 0.04, C.tealLight, { at: [0.18, 1.7, 0], r: 0.02, shadow: false });
+  g.add(drop);
+  g.userData.drop = drop;
+  drips.push(drop);
+  return g;
+}
+const drips = [];
+
+function syringePump() {
+  const g = new THREE.Group();
+  g.add(box(0.5, 0.26, 0.3, C.white, { r: 0.05 }));
+  g.add(box(0.36, 0.08, 0.1, C.orange, { at: [0, 0.17, 0.08], r: 0.03 }));
+  const plunger = box(0.12, 0.06, 0.06, C.dark, { at: [-0.18, 0.17, 0.08], r: 0.02 });
+  g.add(plunger);
+  g.add(box(0.14, 0.08, 0.02, C.screen, { at: [0.12, 0, 0.16], r: 0.01 }));
+  g.userData.plunger = plunger;
+  pumps.push(g);
+  return g;
+}
+const pumps = [];
+
+function tree(s = 1) {
+  const g = new THREE.Group();
+  g.add(box(0.5 * s, 0.4 * s, 0.5 * s, C.white, { at: [0, 0.2 * s, 0], r: 0.08 }));
+  g.add(box(0.12 * s, 0.9 * s, 0.12 * s, 0x8a6a4f, { at: [0, 0.8 * s, 0], r: 0.04 }));
+  g.add(box(1.0 * s, 0.8 * s, 1.0 * s, C.green, { at: [0, 1.5 * s, 0], r: 0.3 * s }));
+  g.add(box(0.7 * s, 0.6 * s, 0.7 * s, C.greenDark, { at: [0.05 * s, 2.0 * s, -0.05 * s], r: 0.25 * s }));
+  return g;
+}
+
+function lamp() {
+  const g = new THREE.Group();
+  g.add(box(0.3, 0.1, 0.3, C.dark, { at: [0, 0.05, 0], r: 0.04 }));
+  g.add(box(0.08, 2.6, 0.08, C.dark, { at: [0, 1.35, 0], r: 0.03 }));
+  g.add(box(0.6, 0.06, 0.08, C.dark, { at: [0.26, 2.62, 0], r: 0.03 }));
+  g.add(box(0.36, 0.14, 0.24, C.white, { at: [0.5, 2.55, 0], r: 0.06, emissive: 0.6 }));
+  return g;
+}
+
+function ambulance() {
+  const g = new THREE.Group();
+  g.add(box(2.0, 1.0, 0.95, C.white, { at: [-0.2, 0.75, 0], r: 0.14 }));
+  g.add(box(0.75, 0.7, 0.92, C.white, { at: [1.1, 0.6, 0], r: 0.14 }));
+  g.add(box(0.1, 0.36, 0.8, C.glass, { at: [1.45, 0.78, 0], r: 0.04 }));
+  g.add(box(2.02, 0.16, 0.97, C.royal, { at: [-0.2, 0.62, 0], r: 0.04 }));
+  g.add(box(0.48, 0.1, 0.06, C.teal, { at: [-0.3, 0.95, 0.49], r: 0.02 }));
+  g.add(box(0.1, 0.48, 0.06, C.teal, { at: [-0.3, 0.95, 0.49], r: 0.02 }));
+  const beacon = box(0.4, 0.12, 0.3, C.orange, { at: [0.7, 1.32, 0], r: 0.05, emissive: 1.2 });
+  g.add(beacon);
+  [[-0.9, 0.45], [0.9, 0.45], [-0.9, -0.45], [0.9, -0.45]].forEach(([x, z]) =>
+    g.add(box(0.36, 0.36, 0.16, C.dark, { at: [x, 0.2, z], r: 0.08 })));
+  g.userData.beacon = beacon;
+  return g;
+}
+
+function scooter(color) {
+  const g = new THREE.Group();
+  g.add(box(0.9, 0.12, 0.3, color, { at: [0, 0.3, 0], r: 0.05 }));
+  g.add(box(0.12, 0.6, 0.1, color, { at: [0.4, 0.6, 0], r: 0.04 }));
+  g.add(box(0.06, 0.06, 0.5, C.dark, { at: [0.4, 0.92, 0], r: 0.03 }));
+  g.add(box(0.3, 0.3, 0.12, C.dark, { at: [0.4, 0.15, 0], r: 0.12 }));
+  g.add(box(0.3, 0.3, 0.12, C.dark, { at: [-0.4, 0.15, 0], r: 0.12 }));
+  g.add(box(0.45, 0.35, 0.4, C.white, { at: [-0.3, 0.55, 0], r: 0.06 }));
+  return g;
+}
+
+/* ---------- world ---------- */
+// slab
+place(box(20, 0.8, 25, C.slab, { r: 0.6 }), 0, -0.4, 0, 0, 0);
+place(box(18.6, 0.06, 23.6, C.road, { r: 0.3, shadow: false }), 0, 0.03, 0, 0, 0.02);
+place(box(15.4, 0.12, 20.4, C.white, { r: 0.3 }), 0, 0.07, 0, 0, 0.04);
+// road dashes
+for (let i = -4; i <= 4; i++) {
+  place(box(0.7, 0.04, 0.12, C.white, { shadow: false }), i * 2, 0.08, 11.1, 0, 0.1);
+  place(box(0.7, 0.04, 0.12, C.white, { shadow: false }), i * 2, 0.08, -11.1, 0, 0.1);
+}
+for (let i = -5; i <= 5; i++) {
+  place(box(0.12, 0.04, 0.7, C.white, { shadow: false }), 9.1, 0.08, i * 2, 0, 0.1);
+  place(box(0.12, 0.04, 0.7, C.white, { shadow: false }), -9.1, 0.08, i * 2, 0, 0.1);
+}
+
+// hospital building at the back with window grid + roof helipad
+{
+  const b = new THREE.Group();
+  b.add(box(14.4, 7, 2.6, C.royal, { at: [0, 3.5, 0], r: 0.25 }));
+  for (let row = 0; row < 4; row++) for (let col = 0; col < 9; col++) {
+    if (row === 0 && (col === 4)) continue;
+    b.add(box(1.0, 0.95, 0.12, C.glass, { at: [-6 + col * 1.5, 1.5 + row * 1.5, 1.3], r: 0.06, emissive: 0.15, shadow: false }));
+  }
+  b.add(box(2.2, 1.6, 0.3, C.glass, { at: [0, 0.95, 1.3], r: 0.08 }));        // entrance
+  b.add(box(3.2, 0.15, 1.2, C.white, { at: [0, 1.9, 1.7], r: 0.06 }));        // canopy
+  // cross on facade
+  b.add(box(0.9, 0.28, 0.12, C.white, { at: [0, 6.7, 1.34], r: 0.05, emissive: 0.3 }));
+  b.add(box(0.28, 0.9, 0.12, C.white, { at: [0, 6.7, 1.34], r: 0.05, emissive: 0.3 }));
+  b.add(box(14.6, 0.25, 2.8, C.royalDark, { at: [0, 7.1, 0], r: 0.1 }));
+  b.add(box(2.6, 0.08, 2.0, C.green, { at: [-3.5, 7.26, 0], r: 0.04 }));     // helipad
+  b.add(box(1.2, 0.8, 1.2, C.edge, { at: [3.5, 7.6, 0], r: 0.1 }));          // HVAC
+  b.add(box(1.0, 0.1, 1.0, C.dark, { at: [3.5, 8.05, 0], r: 0.05 }));
+  place(b, 0, 0, -8.6, 0, 0.15);
+}
+// helicopter on roof with spinning rotor
+const heli = new THREE.Group();
+heli.add(box(1.3, 0.6, 0.6, C.white, { at: [0, 0.45, 0], r: 0.25 }));
+heli.add(box(0.4, 0.4, 0.55, C.glass, { at: [0.55, 0.5, 0], r: 0.15 }));
+heli.add(box(1.2, 0.14, 0.14, C.white, { at: [-1.1, 0.55, 0], r: 0.06 }));
+heli.add(box(0.1, 0.4, 0.06, C.orange, { at: [-1.65, 0.7, 0], r: 0.03 }));
+heli.add(box(1.4, 0.05, 0.05, C.dark, { at: [0, 0.1, 0.25], r: 0.02 }));
+heli.add(box(1.4, 0.05, 0.05, C.dark, { at: [0, 0.1, -0.25], r: 0.02 }));
+const rotor = G(box(2.6, 0.04, 0.14, C.dark, { r: 0.02 }), box(0.14, 0.04, 2.6, C.dark, { r: 0.02 }));
+rotor.position.y = 0.85;
+heli.add(rotor);
+place(heli, -3.5, 7.3, -8.6, 0.3, 0.7);
+
+// room floors (cut-away diorama)
+place(box(7.0, 0.1, 6.2, C.tealLight, { r: 0.1 }), -3.9, 0.15, -3.6, 0, 0.12);
+place(box(7.0, 0.1, 6.2, 0xdfe6fb, { r: 0.1 }), 3.9, 0.15, -3.6, 0, 0.12);
+// low walls with window strips
+function wall(len, axis, x, z, color) {
+  const w = new THREE.Group();
+  const a = axis === "x";
+  w.add(box(a ? len : 0.22, 1.1, a ? 0.22 : len, color, { at: [0, 0.55, 0], r: 0.08 }));
+  const n = Math.floor(len / 1.3);
+  for (let i = 0; i < n; i++) {
+    const o = -len / 2 + 0.65 + i * (len / n);
+    w.add(box(a ? 0.8 : 0.24, 0.35, a ? 0.24 : 0.8, C.glass, { at: [a ? o : 0, 0.75, a ? 0 : o], r: 0.05, shadow: false }));
+  }
+  place(w, x, 0.2, z, 0, 0.2);
+}
+wall(6.2, "z", -7.3, -3.6, C.white);
+wall(6.2, "z", 0, -3.6, C.white);
+wall(6.2, "z", 7.3, -3.6, C.white);
+wall(2.4, "x", -6.0, -0.6, C.white);
+wall(2.4, "x", -1.4, -0.6, C.white);
+wall(2.4, "x", 1.4, -0.6, C.white);
+wall(2.4, "x", 6.0, -0.6, C.white);
+
+/* --- Operatiekamer (anesthesie) --- */
+place(box(1.0, 0.7, 0.6, C.edge), -3.6, 0.2, -3.6, 0, 0.3);                     // table column
+const orTable = bed(true, C.green);
+place(orTable, -3.6, 0.2, -3.6, 0, 0.35);
+// surgical light
+{
+  const l = new THREE.Group();
+  l.add(box(0.5, 0.1, 0.5, C.edge, { at: [0, 0.05, 0] }));
+  l.add(box(0.12, 3.2, 0.12, C.edge, { at: [0, 1.6, 0], r: 0.05 }));
+  l.add(box(2.0, 0.1, 0.12, C.edge, { at: [1.0, 3.2, 0], r: 0.05 }));
+  const head = G(box(1.1, 0.2, 1.1, C.white, { r: 0.1 }), box(0.8, 0.04, 0.8, 0xfff6d8, { at: [0, -0.12, 0], r: 0.02, emissive: 1.4, shadow: false }));
+  head.position.set(2.0, 2.95, 0);
+  l.add(head);
+  l.userData.head = head;
+  place(l, -5.3, 0.2, -5.6, 0, 0.4);
+  window.__orLight = l;
+}
+// anesthesia machine at the head end
+const anMachine = new THREE.Group();
+{
+  const m = anMachine;
+  m.add(box(1.0, 1.5, 0.8, C.royal, { at: [0, 0.75, 0], r: 0.1 }));
+  m.add(box(1.04, 0.08, 0.84, C.white, { at: [0, 1.0, 0], r: 0.03 }));
+  m.add(box(0.8, 0.55, 0.1, C.dark, { at: [0, 1.95, -0.1], r: 0.06 }));
+  m.add(box(0.7, 0.45, 0.02, C.screen, { at: [0, 1.95, -0.04], r: 0.01, shadow: false }));
+  m.add(box(0.1, 0.5, 0.1, C.edge, { at: [0, 1.55, -0.1], r: 0.04 }));
+  // vaporizers
+  m.add(box(0.2, 0.32, 0.2, C.teal, { at: [-0.32, 1.2, 0.3], r: 0.06 }));
+  m.add(box(0.2, 0.32, 0.2, C.green, { at: [-0.08, 1.2, 0.3], r: 0.06 }));
+  // bellows housing + moving bellows
+  m.add(box(0.42, 0.06, 0.42, C.white, { at: [0.3, 1.07, 0.18], r: 0.03 }));
+  const bellow = box(0.32, 0.5, 0.32, C.orange, { r: 0.08 });
+  bellow.geometry = bellow.geometry.clone(); bellow.geometry.translate(0, 0.25, 0);
+  bellow.position.set(0.3, 1.1, 0.18);
+  m.add(bellow);
+  // gas cylinders
+  m.add(box(0.18, 0.7, 0.18, C.green, { at: [-0.62, 0.35, -0.2], r: 0.08 }));
+  m.add(box(0.18, 0.7, 0.18, C.white, { at: [-0.62, 0.35, 0.05], r: 0.08 }));
+  m.userData.bellow = bellow;
+  place(m, -6.2, 0.2, -3.3, Math.PI / 2, 0.45);
+}
+const orMon = monitor(1.4);
+place(orMon, -6.1, 0.2, -4.8, Math.PI / 2 - 0.4, 0.5);
+place(ivPole(), -5.1, 0.2, -2.3, 0, 0.5);
+place(syringePump(), -5.1, 1.3, -2.15, Math.PI / 2, 0.55);
+// instrument table
+{
+  const t = new THREE.Group();
+  t.add(box(1.4, 0.08, 0.7, C.edge, { at: [0, 0.9, 0] }));
+  [[-0.6, -0.28], [0.6, -0.28], [-0.6, 0.28], [0.6, 0.28]].forEach(([x, z]) => t.add(box(0.06, 0.88, 0.06, C.edge, { at: [x, 0.44, z], r: 0.02 })));
+  t.add(box(1.2, 0.04, 0.55, C.royal, { at: [0, 0.96, 0], r: 0.02 }));
+  for (let i = 0; i < 5; i++) t.add(box(0.08, 0.04, 0.4, C.edge, { at: [-0.45 + i * 0.2, 1.0, 0], r: 0.02 }));
+  place(t, -1.7, 0.2, -5.4, 0, 0.5);
+}
+// team: anesthesioloog + anesthesiemedewerker (blue), two surgeons (green)
+const anesTech = person(C.royal, C.orange);
+place(anesTech, -5.7, 0.2, -2.6, Math.PI * 0.75, 0.6);
+const anesDoc = person(C.royal, C.royal);
+place(anesDoc, -5.4, 0.2, -4.4, Math.PI / 2, 0.62);
+const surg1 = person(C.green, C.green);
+place(surg1, -3.0, 0.2, -2.7, Math.PI, 0.64);
+const surg2 = person(C.green, C.greenDark, C.skin2);
+place(surg2, -3.0, 0.2, -4.5, 0, 0.66);
+place(person(C.teal, C.teal), -1.6, 0.2, -4.6, Math.PI, 0.68);
+
+/* --- SPS: sedatie op de MRI --- */
+const mri = new THREE.Group();
+{
+  mri.add(box(1.4, 3.0, 3.0, C.white, { at: [0, 1.5, 0], r: 0.5 }));
+  // bore ring of rounded blocks
+  const R = 0.78, n = 18;
+  for (let i = 0; i < n; i++) {
+    const a = (i / n) * TAU;
+    const seg = box(1.44, 0.3, 0.32, C.teal, { r: 0.06, shadow: false });
+    seg.position.set(0, 1.5 + Math.sin(a) * R, Math.cos(a) * R);
+    seg.rotation.x = -a;
+    mri.add(seg);
+  }
+  mri.add(box(1.3, 0.12, 2.6, C.royal, { at: [0, 2.9, 0], r: 0.05 }));
+  place(mri, 5.6, 0.2, -3.6, 0, 0.45);
+}
+place(box(2.6, 0.7, 0.7, C.edge, { r: 0.12 }), 3.4, 0.2, -3.6, 0, 0.5); // table base
+const mriTop = new THREE.Group();
+mriTop.add(box(2.6, 0.12, 0.72, C.white, { at: [0, 0.78, 0], r: 0.05 }));
+mriTop.add(box(0.26, 0.24, 0.26, C.skin, { at: [-0.95, 1.0, 0], r: 0.1 }));
+mriTop.add(box(1.6, 0.22, 0.6, C.tealLight, { at: [0.15, 0.94, 0], r: 0.1 }));
+place(mriTop, 3.4, 0.2, -3.6, 0, 0.55);
+const spsMon = monitor(1.3);
+place(spsMon, 1.3, 0.2, -5.2, 0.5, 0.6);
+place(ivPole(), 1.4, 0.2, -2.2, 0, 0.6);
+place(syringePump(), 1.4, 1.2, -2.05, 0, 0.62);
+place(syringePump(), 1.4, 1.55, -2.05, 0, 0.64);
+// capnography / oxygen trolley
+{
+  const t = new THREE.Group();
+  t.add(box(0.7, 1.0, 0.5, C.white, { at: [0, 0.5, 0], r: 0.08 }));
+  t.add(box(0.18, 0.8, 0.18, C.green, { at: [0.22, 1.3, 0], r: 0.08 }));
+  t.add(box(0.4, 0.3, 0.06, C.screen, { at: [-0.1, 0.75, 0.26], r: 0.03 }));
+  place(t, 1.2, 0.2, -1.4, 0, 0.65);
+}
+const sps = person(C.teal, C.orange);
+place(sps, 2.0, 0.2, -2.3, Math.PI * 0.85, 0.66);
+const radiolaborant = person(C.royal, C.white, C.skin2);
+place(radiolaborant, 3.2, 0.2, -5.4, 0.2, 0.68);
+
+/* --- Recovery island in the middle --- */
+place(box(9.4, 0.1, 3.4, 0xe2f4e8, { r: 0.12 }), 0, 0.15, 4.0, 0, 0.3);
+[-3, 0, 3].forEach((x, i) => {
+  place(bed(true, [C.royal, C.teal, C.green][i]), x, 0.2, 3.6, Math.PI / 2, 0.45 + i * 0.05);
+  const m = monitor(1.2);
+  place(m, x + 1.1, 0.2, 2.8, -0.3, 0.55 + i * 0.05);
+});
+const recNurse = person(C.green, C.white);
+place(recNurse, 0, 0.2, 5.4, Math.PI, 0.7);
+// corridor trolleys & walking staff loop around island
+const movers = [];
+function loopPos(u, hw, hd, cx, cz) {
+  // rounded-rectangle-ish loop param u∈[0,1)
+  const per = 2 * (hw + hd) * 2;
+  let s = ((u % 1) + 1) % 1 * per;
+  const segs = [[2 * hw, [cx - hw, cz + hd], [1, 0]], [2 * hd, [cx + hw, cz + hd], [0, -1]], [2 * hw, [cx + hw, cz - hd], [-1, 0]], [2 * hd, [cx - hw, cz - hd], [0, 1]]];
+  for (const [len, [x0, z0], [dx, dz]] of segs) {
+    if (s <= len) return { x: x0 + dx * s, z: z0 + dz * s, ry: Math.atan2(-dz, dx) };
+    s -= len;
+  }
+  return { x: cx - hw, z: cz + hd, ry: 0 };
+}
+{
+  const transport = new THREE.Group();
+  transport.add(bed(true, C.royal));
+  const porter = person(C.teal, C.teal);
+  porter.position.set(-1.5, 0, 0);
+  porter.rotation.y = Math.PI / 2;
+  transport.add(porter);
+  place(transport, 0, 0.2, 0, 0, 0.75);
+  movers.push({ obj: transport, holder: transport.parent, offset: 0, hw: 6.0, hd: 2.6, cx: 0, cz: 4.0, walker: porter });
+  const walker = person(C.royal, C.orange);
+  place(walker, 0, 0.2, 0, 0, 0.8);
+  movers.push({ obj: walker, holder: walker.parent, offset: 0.5, hw: 6.0, hd: 2.6, cx: 0, cz: 4.0, walker, scale: 1 });
+}
+
+/* --- street furniture, trees, lamps, scooters --- */
+[[-6.8, 8.9], [6.8, 8.9], [-6.9, 1.0], [6.9, 1.0]].forEach(([x, z], i) => place(tree(i < 2 ? 1 : 0.8), x, 0.15, z));
+[[-3.5, 9.4], [0, 9.4], [3.5, 9.4], [-7.5, 5], [7.5, 5]].forEach(([x, z]) => place(lamp(), x, 0.15, z, x < -7 ? 0 : x > 7 ? Math.PI : -Math.PI / 2));
+place(box(2.0, 0.4, 0.5, C.royal, { r: 0.12 }), -4.6, 0.15, 7.6, 0, 0.6);            // bench
+place(box(2.0, 0.4, 0.5, C.royal, { r: 0.12 }), 4.6, 0.15, 7.6, 0, 0.6);
+const sc1 = scooter(C.teal); place(sc1, -1.2, 0.15, 8.4, 0.2, 0.7);
+const sc2 = scooter(C.green); place(sc2, 1.2, 0.15, 8.6, -0.3, 0.72);
+// visitors strolling on the front plaza
+const visitors = [person(C.green, C.dark, C.skin2), person(C.royal, C.dark), person(C.teal, C.dark, C.skin2)];
+visitors.forEach((v, i) => place(v, 0, 0.15, 0, 0, 0.8 + i * 0.03));
+
+// ambulance + delivery scooter loop the block on the road ring
+const amb = ambulance();
+place(amb, 0, 0.06, 0, 0, 0.85);
+const courier = new THREE.Group();
+courier.add(scooter(C.royal));
+const rider = person(C.orange, C.dark);
+rider.position.set(-0.05, 0.3, 0); rider.rotation.y = Math.PI / 2; rider.scale.setScalar(0.85);
+courier.add(rider);
+place(courier, 0, 0.06, 0, 0, 0.9);
+
+/* ---------- overlay helpers ---------- */
+const pins = [
+  { el: document.getElementById("pinOR"), p: new THREE.Vector3(-3.6, 3.6, -3.6) },
+  { el: document.getElementById("pinSPS"), p: new THREE.Vector3(5.0, 3.6, -3.6) },
+  { el: document.getElementById("pinREC"), p: new THREE.Vector3(0, 1.6, 3.6) },
+];
+const tmp = new THREE.Vector3();
+const stats = [
+  { el: document.getElementById("s1"), v: 1284, rate: 0.55 },
+  { el: document.getElementById("s2"), v: 392, rate: 0.4 },
+  { el: document.getElementById("s3"), v: 48610, rate: 9.5 },
+];
+const nf = new Intl.NumberFormat("nl-NL");
+
+/* ---------- animate ---------- */
+const clock = new THREE.Clock();
+function tick() {
+  const t = clock.getElapsedTime();
+  const lt = t % LOOP;
+  const ph = lt / LOOP;   // 0..1 loop phase
+
+  // build-in
+  for (const b of builders) {
+    const k = THREE.MathUtils.clamp((t - b.d) / 0.55, 0, 1);
+    const e = k === 0 ? 0 : easeOutBack(k);
+    b.holder.position.y = b.y - 6 * (1 - e);
+    b.holder.scale.setScalar(Math.max(0.001, Math.min(1.15, 0.2 + 0.8 * e)));
+  }
+
+  // camera: eased orbit + push-in, periodic → seamless loop
+  const s = 0.5 - 0.5 * Math.cos(ph * TAU);
+  const ang = 0.55 + 0.32 * Math.sin(ph * TAU);
+  const R = 56 - 5 * s;
+  camera.position.set(Math.sin(ang) * R, 52 - 4 * s, Math.cos(ang) * R);
+  camera.lookAt(0, 0.2, -1.6);
+
+  // ventilator: 12 breaths/min → 2 per loop
+  const breath = 0.5 - 0.5 * Math.cos(lt / 5 * TAU);
+  anMachine.userData.bellow.scale.y = 0.35 + 0.65 * breath;
+  // heart rate 72/min → 12 beats per loop
+  const beat = (lt * 1.2) % 1;
+  for (const m of monitors) {
+    m.userData.bars.forEach((b, i) => {
+      const local = (beat - i / 7 + 1) % 1;
+      const spike = Math.exp(-Math.pow((local - 0.1) * 18, 2));
+      b.scale.y = 0.25 + 1.6 * spike;
+    });
+    m.userData.dot.material.emissiveIntensity = 0.4 + 1.6 * Math.exp(-beat * 8);
+  }
+  for (const d of drips) {
+    const k = (lt * 0.8) % 1;
+    d.position.y = 1.7 - k * 0.35;
+    d.scale.setScalar(1 - k * 0.6);
+  }
+  for (const p of pumps) p.userData.plunger.position.x = -0.18 + 0.3 * ph;
+
+  // OR lamp gently tracks, team breathes / sways
+  window.__orLight.userData.head.rotation.z = Math.sin(ph * TAU) * 0.12;
+  anesTech.rotation.y = Math.sin(ph * TAU * 2) * 0.25;
+  anesDoc.position.y = Math.abs(Math.sin(ph * TAU * 4)) * 0.03;
+  surg1.rotation.y = Math.PI + Math.sin(ph * TAU * 3) * 0.15;
+  surg2.rotation.y = Math.sin(ph * TAU * 3 + 1) * 0.15;
+  recNurse.position.x = Math.sin(ph * TAU) * 3;
+  recNurse.rotation.y = Math.cos(ph * TAU) > 0 ? Math.PI / 2 : -Math.PI / 2;
+  walkLegs(recNurse, lt * 8);
+
+  // MRI: patient slides in, scans, slides out
+  const slide = THREE.MathUtils.smoothstep(Math.sin(ph * TAU - Math.PI / 2) * 0.5 + 0.5, 0.1, 0.9);
+  mriTop.position.x = slide * 2.3;
+  sps.rotation.y = Math.PI * 0.85 + Math.sin(ph * TAU * 2) * 0.3;
+  radiolaborant.position.x = Math.sin(ph * TAU) * 0.6;
+  walkLegs(radiolaborant, lt * 6);
+
+  // corridor loop
+  for (const m of movers) {
+    const p = loopPos(ph + m.offset, m.hw, m.hd, m.cx, m.cz);
+    m.obj.position.set(p.x, 0, p.z);
+    m.obj.rotation.y = p.ry;
+    walkLegs(m.walker, lt * 9);
+  }
+  visitors.forEach((v, i) => {
+    const a = ph * TAU + i * TAU / 3;
+    v.position.set(Math.cos(a) * 2.8, 0, 8.0 + Math.sin(a) * 0.9);
+    v.rotation.y = -a;
+    walkLegs(v, lt * 8 + i);
+  });
+
+  // ambulance + courier loop the block (one lap per loop)
+  const pa = loopPos(ph, 9.1, 11.1, 0, 0);
+  amb.position.set(pa.x, 0, pa.z); amb.rotation.y = pa.ry;
+  amb.userData.beacon.material.emissiveIntensity = (Math.floor(lt * 6) % 2) ? 2.2 : 0.3;
+  const pc = loopPos(ph + 0.5, 9.1, 11.1, 0, 0);
+  courier.position.set(pc.x, 0, pc.z); courier.rotation.y = pc.ry;
+
+  rotor.rotation.y = lt * 14 * TAU / LOOP * 10;
+
+  // overlay
+  for (const st of stats) {
+    const v = Math.floor(st.v + Math.max(0, t - 1) * st.rate);
+    if (st.last !== v) { st.el.textContent = nf.format(v); st.last = v; }
+  }
+  camera.updateMatrixWorld();
+  const w = stage.clientWidth, h = stage.clientHeight;
+  for (const pin of pins) {
+    tmp.copy(pin.p).project(camera);
+    pin.el.style.transform = `translate(${(tmp.x * 0.5 + 0.5) * w}px, ${(-tmp.y * 0.5 + 0.5) * h}px) translate(-50%, -130%)`;
+    pin.el.classList.toggle("on", t > 1.4);
+  }
+
+  composer.render();
+  requestAnimationFrame(tick);
+}
+tick();
+</script>
+</body>
+</html>

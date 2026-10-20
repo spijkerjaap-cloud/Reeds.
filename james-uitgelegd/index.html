@@ -87,6 +87,18 @@ details summary { cursor: pointer; font-weight: 600; color: var(--accent) }
 .chat .q { font-weight: 600 }
 .chat .a { white-space: pre-wrap }
 
+/* inbox */
+.inbox ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px }
+.inbox li { display: flex; gap: 12px; align-items: center; justify-content: space-between; padding: 10px 12px; border-radius: 10px; background: var(--soft) }
+.inbox li > div { min-width: 0; display: grid; gap: 2px }
+.inbox li strong { font-weight: 600; overflow-wrap: anywhere }
+.inbox li small { color: var(--muted) }
+.inbox li button { flex: none; padding: 8px 14px; font-size: .85rem }
+.inbox li.done button { background: transparent }
+.badge { font: 600 .7rem/1 var(--f-body); letter-spacing: .04em; text-transform: uppercase; color: var(--good) }
+.manual summary { cursor: pointer; font-weight: 600 }
+#status:empty { display: none }
+
 /* archief */
 .archive ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px }
 .archive li button { width: 100%; text-align: left; border-radius: 10px; border: 0; background: transparent;
@@ -102,10 +114,21 @@ details summary { cursor: pointer; font-weight: 600; color: var(--accent) }
   <header>
     <span class="eyebrow">InvestAnswers · in gewone taal</span>
     <h1>James Uitgelegd</h1>
-    <p class="lede">Plak de tekst van een post van James, of voeg de screenshot of grafiek toe. Je krijgt uitleg in Jip-en-Janneke-taal: wat hij zegt, welke woorden je moet kennen, de achtergrond, en wat het betekent voor jouw BTC, SOL, Tesla en wereld-ETF.</p>
+    <p class="lede">Nieuwe posts komen binnen via je mail. Tik op een post en je krijgt uitleg in Jip-en-Janneke-taal: wat hij zegt, welke woorden je moet kennen, de achtergrond, en wat het betekent voor jouw BTC, SOL, Tesla en wereld-ETF.</p>
   </header>
 
-  <form class="card" id="form">
+  <section class="card inbox" id="inbox">
+    <div class="row" style="justify-content:space-between">
+      <h2>Nieuw van James</h2>
+      <button type="button" id="refresh">Haal posts op uit Gmail</button>
+    </div>
+    <p class="hint" id="inboxHint">Patreon mailt elke nieuwe post met de volledige tekst. De app leest die mails uit je Gmail, plus de InvestAnswers-recaps van Substack.</p>
+    <ul id="mail"></ul>
+  </section>
+
+  <details class="card manual" id="manual">
+  <summary>Zelf een post plakken</summary>
+  <form id="form" style="display:grid;gap:14px;margin-top:14px">
     <div style="display:grid;gap:6px">
       <label for="title">Titel van de post</label>
       <input type="text" id="title" placeholder="bijv. Who gets the CAPEX" autocomplete="off">
@@ -120,8 +143,9 @@ details summary { cursor: pointer; font-weight: 600; color: var(--accent) }
       <label class="hint" id="imgLabel" for="img" hidden><input type="file" id="img" accept="image/*" multiple style="display:none"><span style="text-decoration:underline;cursor:pointer">+ Screenshot of grafiek toevoegen</span></label>
       <button type="button" id="stop" hidden>Stop</button>
     </div>
-    <p class="status" id="status" aria-live="polite"></p>
   </form>
+  </details>
+  <p class="status" id="status" aria-live="polite"></p>
 
   <article class="card explain" id="out"></article>
 
@@ -230,25 +254,106 @@ async function explain(ev) {
   ev.preventDefault();
   const title = $("#title").value.trim(), body = $("#body").value.trim();
   if (!body && !images.length) { $("#status").textContent = "Plak eerst de tekst of voeg een screenshot toe."; return; }
-  if (!sample) { $("#status").textContent = "Claude is hier niet beschikbaar. Open de app op claude.ai."; return; }
+  const ok = await runExplain(title, body, images.map(i => i.blob), null);
+  if (ok) { $("#title").value = ""; $("#body").value = ""; images = []; renderThumbs(); }
+}
+
+let busy = false;
+async function runExplain(title, body, imgs, mailId) {
+  if (!sample) { $("#status").textContent = "Claude is hier niet beschikbaar. Open de app op claude.ai."; return false; }
+  if (busy) return false;
+  busy = true; renderMail();
   ctl = new AbortController();
   $("#go").disabled = true; $("#stop").hidden = false;
-  $("#status").className = "status"; $("#status").textContent = "Claude leest de post en schrijft de uitleg… (kan 20-60 seconden duren)";
+  $("#status").className = "status"; $("#status").textContent = `Claude leest “${title || "de post"}” en schrijft de uitleg… (20-60 seconden)`;
   try {
-    const data = await sample.json(prompt(title, body, images.length), { signal: ctl.signal, images: images.length ? images.map(i => i.blob) : undefined });
-    const p = { id: "p" + Date.now(), title: title || data.title || "Post van James", created: Date.now(), source: body.slice(0, 20000), data, chat: [] };
+    const data = await sample.json(prompt(title, body, imgs.length), { signal: ctl.signal, images: imgs.length ? imgs : undefined });
+    const p = { id: "p" + Date.now(), title: title || data.title || "Post van James", created: Date.now(), source: body.slice(0, 20000), data, chat: [], mailId };
     posts.unshift(p);
     renderExplain(p);
     $("#status").textContent = "";
-    $("#title").value = ""; $("#body").value = ""; images = []; renderThumbs();
     $("#out").scrollIntoView({ behavior: "smooth" });
     save(p);
+    return true;
   } catch (e) {
     $("#status").className = "status err"; $("#status").textContent = errCopy(e);
+    return false;
   } finally {
+    busy = false; renderMail();
     $("#go").disabled = false; $("#stop").hidden = true;
   }
 }
+
+/* ---- Gmail ---- */
+const GMAIL = "Gmail";
+const QUERY = "{from:creator.patreon.com from:substack.com} InvestAnswers newer_than:30d";
+let mcp = null, mails = [];
+
+// Patreon/Substack-mail naar leesbare tekst: links, tabelstrepen en onzichtbare tekens eruit, footer eraf
+function cleanMail(t) {
+  return String(t || "")
+    .replace(/[͏­​-‍⁠﻿]/g, "")
+    .replace(/\[([^\]]*)\]\([^)]*\)/g, "$1")
+    .replace(/https?:\/\/\S+/g, "")
+    .replace(/^[\s|#]+|[\s|]+$/gm, "")
+    .split(/Vond je deze post leuk\?|Did you like this post\?|©\s*20\d\d|Unsubscribe|Afmelden/)[0]
+    .replace(/\n{3,}/g, "\n\n").trim().slice(0, 20000);
+}
+
+function mailCopy(e) {
+  return ({
+    needs_reauth: "Gmail moet opnieuw verbonden worden: claude.ai → Instellingen → Connectors.",
+    server_not_connected: "Voeg Gmail toe in claude.ai → Instellingen → Connectors.",
+    selection_required: "Kies welke Gmail-koppeling de app mag gebruiken (claude.ai vraagt dit bij openen).",
+    not_in_manifest: "Je hebt deze app geen toegang tot Gmail gegeven. Zet het aan via het Permissions-menu van de app.",
+    approval_required: "De app heeft je toestemming nodig voor Gmail. Tik nog eens op de knop en kies Toestaan.",
+    server_unavailable: "Gmail reageert even niet. Probeer het zo nog eens.",
+    blocked_by_policy: "Gmail is voor jouw account geblokkeerd in deze app.",
+  })[e?.code] || "Mails ophalen lukte niet (" + (e?.message || e?.code || "onbekend") + ").";
+}
+
+function renderMail() {
+  const done = new Set(posts.map(p => p.mailId).filter(Boolean));
+  $("#mail").innerHTML = mails.map((m, i) => {
+    const isDone = done.has(m.id);
+    return `<li class="${isDone ? "done" : ""}"><div><strong>${esc(m.subject)}</strong><small>${esc(m.from)} · ${esc(m.when)}${isDone ? ' · <span class="badge">uitgelegd</span>' : ""}</small></div><button type="button" class="${isDone ? "" : "primary"}" data-i="${i}" ${busy ? "disabled" : ""}>${isDone ? "Lees" : "Leg uit"}</button></li>`;
+  }).join("");
+  $("#mail").querySelectorAll("button").forEach(b => b.onclick = () => openMail(mails[+b.dataset.i]));
+}
+
+async function loadMail() {
+  if (!mcp) return;
+  $("#refresh").disabled = true; $("#inboxHint").className = "hint"; $("#inboxHint").textContent = "Mails ophalen…";
+  try {
+    const r = await mcp.callTool(GMAIL, "search_threads", { query: QUERY, pageSize: 25 }, { cache: false });
+    const threads = r.payload?.threads || [];
+    mails = threads.map(t => {
+      const m = t.messages?.[0] || {};
+      const fromAddr = String(m.sender || "");
+      return { id: t.id, subject: String(m.subject || "(geen onderwerp)"), from: fromAddr.includes("substack") ? "Substack-recap" : "Patreon", when: m.date ? new Date(m.date).toLocaleDateString("nl-NL", { day: "numeric", month: "short" }) : "" };
+    });
+    $("#inboxHint").textContent = mails.length ? "Tik op Leg uit bij een post." :
+      "Geen InvestAnswers-mails gevonden in de laatste 30 dagen. Zet e-mail aan voor InvestAnswers in Patreon: Instellingen → Meldingen → InvestAnswers → E-mail bij nieuwe posts.";
+    renderMail();
+  } catch (e) {
+    $("#inboxHint").className = "hint status err"; $("#inboxHint").textContent = mailCopy(e);
+  } finally { $("#refresh").disabled = false; }
+}
+
+async function openMail(m) {
+  const existing = posts.find(p => p.mailId === m.id);
+  if (existing) { renderExplain(existing); $("#out").scrollIntoView({ behavior: "smooth" }); return; }
+  $("#status").className = "status"; $("#status").textContent = "Mail openen…";
+  try {
+    const r = await mcp.callTool(GMAIL, "get_thread", { threadId: m.id, messageFormat: "PLAIN_TEXT" }, { cache: false });
+    const msg = r.payload?.messages?.[0] || {};
+    const body = cleanMail(msg.plaintextBody || msg.snippet);
+    if (!body) { $("#status").className = "status err"; $("#status").textContent = "Deze mail bevat geen tekst. Open de post in Patreon en plak een screenshot."; return; }
+    await runExplain(m.subject, body, [], m.id);
+  } catch (e) { $("#status").className = "status err"; $("#status").textContent = mailCopy(e); }
+}
+
+$("#refresh").onclick = loadMail;
 
 async function askFollowup(ev) {
   ev.preventDefault();
@@ -277,7 +382,7 @@ Antwoord kort (max 150 woorden), zonder markdown-opmaak.`;
 
 async function save(p) {
   if (!db || !uid || p.example) return;
-  try { await db.collection("data/users/" + uid).doc(p.id).set({ title: p.title, created: p.created, source: p.source || "", data: p.data, chat: p.chat || [] }); }
+  try { await db.collection("data/users/" + uid).doc(p.id).set({ title: p.title, created: p.created, source: p.source || "", data: p.data, chat: p.chat || [], mailId: p.mailId || null }); }
   catch (e) { $("#status").className = "status err"; $("#status").textContent = "Uitleg staat er, maar bewaren in je archief lukte niet."; }
 }
 
@@ -307,6 +412,14 @@ renderExplain(EXAMPLE);
       $("#body").addEventListener("paste", e => { const f = [...(e.clipboardData?.files || [])]; if (f.length) { e.preventDefault(); addImages(f, max); } });
     }
   }
+  mcp = await claude.use("mcp");
+  if (!mcp) { $("#inbox").hidden = true; $("#manual").open = true; }
+  else {
+    // al toestemming gegeven? dan meteen ophalen, anders wacht op de knop
+    const perms = await claude.use("permissions");
+    const st = perms ? await perms.state("mcp:" + GMAIL).catch(() => "unavailable") : "prompt";
+    if (st === "granted") loadMail();
+  }
   const user = await claude.use("user");
   db = await claude.use("db");
   if (db && user) {
@@ -317,7 +430,7 @@ renderExplain(EXAMPLE);
       posts = snap.docs.map(d => ({ id: d.id, ...d.data() }));
       const again = posts.find(p => p.id === keepId);
       if (again) current = again;
-      renderList();
+      renderList(); renderMail();
     }, () => {});
   }
 })();

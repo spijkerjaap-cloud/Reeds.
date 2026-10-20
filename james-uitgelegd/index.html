@@ -277,7 +277,7 @@ Antwoord kort (max 150 woorden), zonder markdown-opmaak.`;
 
 async function save(p) {
   if (!db || !uid || p.example) return;
-  try { await db.collection("data/users/" + uid + "/posts").doc(p.id).set({ title: p.title, created: p.created, source: p.source || "", data: p.data, chat: p.chat || [] }); }
+  try { await db.collection("data/users/" + uid).doc(p.id).set({ title: p.title, created: p.created, source: p.source || "", data: p.data, chat: p.chat || [] }); }
   catch (e) { $("#status").className = "status err"; $("#status").textContent = "Uitleg staat er, maar bewaren in je archief lukte niet."; }
 }
 
@@ -312,7 +312,7 @@ renderExplain(EXAMPLE);
   if (db && user) {
     uid = await user.id();
     if (!uid) return;
-    db.collection("data/users/" + uid + "/posts").orderBy("created", "desc").limit(200).onSnapshot(snap => {
+    db.collection("data/users/" + uid).orderBy("created", "desc").limit(200).onSnapshot(snap => {
       const keepId = current?.id;
       posts = snap.docs.map(d => ({ id: d.id, ...d.data() }));
       const again = posts.find(p => p.id === keepId);

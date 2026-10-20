@@ -107,13 +107,31 @@ details summary { cursor: pointer; font-weight: 600; color: var(--accent) }
 .archive small { color: var(--muted); font-weight: 400 }
 .empty { color: var(--muted); font-size: .95rem }
 .disclaim { font-size: .8rem; color: var(--muted) }
-@media (prefers-reduced-motion: no-preference) { .explain { animation: in .25s ease-out } @keyframes in { from { transform: translateY(4px) } } }
+/* leesscherm: opent bovenop alles, altijd bovenaan beginnen */
+.reader { position: fixed; inset: 0; z-index: 20; background: var(--bg); display: flex; flex-direction: column }
+.rbar { display: flex; align-items: center; gap: 12px; background: var(--paper); border-bottom: 1px solid var(--line);
+  padding-top: calc(10px + env(safe-area-inset-top, 0px)); padding-bottom: 10px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)) }
+.rbar button { padding: 8px 14px }
+.rname { font-family: var(--f-display); color: var(--muted) }
+.rbody { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch;
+  padding-top: 20px; padding-bottom: calc(40px + env(safe-area-inset-bottom, 0px));
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)) }
+.rbody .explain { max-width: 720px; margin: 0 auto }
+body.reading { overflow: hidden }
+.linkish { justify-self: start; border: 0; background: none; padding: 0; color: var(--accent); font-weight: 600 }
+.loading { display: grid; gap: 14px; padding-block: 24px }
+.loading .bar { height: 12px; border-radius: 6px; background: var(--soft) }
+@media (prefers-reduced-motion: no-preference) {
+  .reader:not([hidden]) { animation: up .22s ease-out } @keyframes up { from { transform: translateY(16px); opacity: .6 } }
+  .loading .bar { animation: pulse 1.2s ease-in-out infinite alternate } @keyframes pulse { to { opacity: .45 } } }
 </style>
 
 <div class="wrap">
   <header>
     <span class="eyebrow">InvestAnswers · in gewone taal</span>
     <h1>James Uitgelegd</h1>
+    <button type="button" class="linkish" id="showEx">Bekijk een voorbeelduitleg →</button>
     <p class="lede">Nieuwe posts komen binnen via je mail. Tik op een post en je krijgt uitleg in Jip-en-Janneke-taal: wat hij zegt, welke woorden je moet kennen, de achtergrond, en wat het betekent voor jouw BTC, SOL, Tesla en wereld-ETF.</p>
   </header>
 
@@ -147,7 +165,10 @@ details summary { cursor: pointer; font-weight: 600; color: var(--accent) }
   </details>
   <p class="status" id="status" aria-live="polite"></p>
 
-  <article class="card explain" id="out"></article>
+  <div class="reader" id="reader" hidden role="dialog" aria-modal="true" aria-label="Uitleg">
+    <div class="rbar"><button type="button" id="close">← Terug</button><span class="rname">James Uitgelegd</span></div>
+    <div class="rbody" id="rbody"><article class="card explain" id="out"></article></div>
+  </div>
 
   <section class="card archive">
     <h2>Eerder uitgelegd</h2>
@@ -213,7 +234,7 @@ function renderExplain(p) {
 function renderList() {
   $("#listEmpty").hidden = posts.length > 0;
   $("#list").innerHTML = posts.map((p, i) => `<li><button type="button" data-i="${i}" aria-current="${current && current.id === p.id}">${esc(p.title || "Post van James")}<small>${new Date(p.created).toLocaleDateString("nl-NL", { day: "numeric", month: "short", year: "numeric" })} · ${esc((p.data?.tldr || "").slice(0, 90))}…</small></button></li>`).join("");
-  $("#list").querySelectorAll("button").forEach(b => b.onclick = () => { renderExplain(posts[+b.dataset.i]); $("#out").scrollIntoView({ behavior: "smooth" }); });
+  $("#list").querySelectorAll("button").forEach(b => b.onclick = () => { renderExplain(posts[+b.dataset.i]); openReader(); });
 }
 
 function prompt(title, body, nImg) {
@@ -265,17 +286,25 @@ async function runExplain(title, body, imgs, mailId) {
   busy = true; renderMail();
   ctl = new AbortController();
   $("#go").disabled = true; $("#stop").hidden = false;
-  $("#status").className = "status"; $("#status").textContent = `Claude leest “${title || "de post"}” en schrijft de uitleg… (20-60 seconden)`;
+  $("#status").textContent = "";
+  $("#out").innerHTML = `<div class="loading"><span class="eyebrow">Even geduld</span><h2>${esc(title || "Post van James")}</h2>
+    <p class="hint">Claude leest de post en schrijft de uitleg. Dit duurt 20 tot 60 seconden.</p>
+    <div class="bar" style="width:92%"></div><div class="bar" style="width:78%"></div><div class="bar" style="width:85%"></div>
+    <div><button type="button" id="stopR">Stop</button></div></div>`;
+  $("#stopR").onclick = () => ctl?.abort();
+  openReader();
   try {
     const data = await sample.json(prompt(title, body, imgs.length), { signal: ctl.signal, images: imgs.length ? imgs : undefined });
     const p = { id: "p" + Date.now(), title: title || data.title || "Post van James", created: Date.now(), source: body.slice(0, 20000), data, chat: [], mailId };
     posts.unshift(p);
     renderExplain(p);
     $("#status").textContent = "";
-    $("#out").scrollIntoView({ behavior: "smooth" });
+    openReader();
     save(p);
     return true;
   } catch (e) {
+    closeReader();
+    if (current) renderExplain(current);
     $("#status").className = "status err"; $("#status").textContent = errCopy(e);
     return false;
   } finally {
@@ -342,7 +371,7 @@ async function loadMail() {
 
 async function openMail(m) {
   const existing = posts.find(p => p.mailId === m.id);
-  if (existing) { renderExplain(existing); $("#out").scrollIntoView({ behavior: "smooth" }); return; }
+  if (existing) { renderExplain(existing); openReader(); return; }
   $("#status").className = "status"; $("#status").textContent = "Mail openen…";
   try {
     const r = await mcp.callTool(GMAIL, "get_thread", { threadId: m.id, messageFormat: "PLAIN_TEXT" }, { cache: false });
@@ -394,6 +423,20 @@ function addImages(files, max) {
   for (const f of files) if (f.type.startsWith("image/") && images.length < max) images.push({ blob: f, url: URL.createObjectURL(f) });
   renderThumbs();
 }
+
+function openReader() {
+  $("#reader").hidden = false;
+  document.body.classList.add("reading");
+  $("#rbody").scrollTop = 0;
+  $("#close").focus({ preventScroll: true });
+}
+function closeReader() {
+  $("#reader").hidden = true;
+  document.body.classList.remove("reading");
+}
+$("#close").onclick = closeReader;
+document.addEventListener("keydown", e => { if (e.key === "Escape" && !$("#reader").hidden) closeReader(); });
+$("#showEx").onclick = () => { renderExplain(EXAMPLE); openReader(); };
 
 $("#form").onsubmit = explain;
 $("#stop").onclick = () => ctl?.abort();

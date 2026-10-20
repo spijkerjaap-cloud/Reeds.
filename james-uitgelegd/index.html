@@ -1,0 +1,324 @@
+<title>James Uitgelegd</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Young+Serif&family=Figtree:wght@400;500;600;700&family=JetBrains+Mono:wght@500&display=swap">
+<style>
+/* Layout: single study column — invoer bovenaan, uitleg als schrift-pagina met gemarkeerde begrippen, archief eronder */
+:root {
+  --bg: #eef1f4;
+  --paper: #ffffff;
+  --ink: #18222e;
+  --muted: #5b6878;
+  --line: #d6dde5;
+  --accent: #1f5f8b;
+  --accent-ink: #ffffff;
+  --mark: #ffe38a;
+  --mark-ink: #18222e;
+  --good: #1d7a4c;
+  --warn: #a35c00;
+  --soft: #e3ebf2;
+  --f-display: "Young Serif", Georgia, serif;
+  --f-body: "Figtree", system-ui, -apple-system, sans-serif;
+  --f-mono: "JetBrains Mono", ui-monospace, Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #10161d; --paper: #18212b; --ink: #e6ecf2; --muted: #9aa8b7; --line: #2a3644;
+  --accent: #6db3e6; --accent-ink: #0c1218; --mark: #6b5a1a; --mark-ink: #fff6d6;
+  --good: #5fcf96; --warn: #f0b25a; --soft: #1f2b37; color-scheme: dark } }
+:root[data-theme="dark"] {
+  --bg: #10161d; --paper: #18212b; --ink: #e6ecf2; --muted: #9aa8b7; --line: #2a3644;
+  --accent: #6db3e6; --accent-ink: #0c1218; --mark: #6b5a1a; --mark-ink: #fff6d6;
+  --good: #5fcf96; --warn: #f0b25a; --soft: #1f2b37; color-scheme: dark }
+
+* { box-sizing: border-box }
+body { background: var(--bg); color: var(--ink); font: 16px/1.6 var(--f-body);
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 24px 64px }
+.wrap { max-width: 720px; margin: 0 auto; display: grid; gap: 28px }
+h1, h2, h3 { font-family: var(--f-display); font-weight: 400; text-wrap: balance; margin: 0; line-height: 1.2 }
+h1 { font-size: 2rem }
+h2 { font-size: 1.35rem }
+h3 { font-size: 1.05rem; font-family: var(--f-body); font-weight: 700 }
+p { margin: 0 }
+.lede { color: var(--muted); max-width: 60ch }
+header { display: grid; gap: 8px }
+.eyebrow { font: 600 .75rem/1 var(--f-body); letter-spacing: .08em; text-transform: uppercase; color: var(--accent) }
+
+.card { background: var(--paper); border: 1px solid var(--line); border-radius: 14px; padding: 20px; display: grid; gap: 14px; min-width: 0 }
+label { font-weight: 600; font-size: .9rem }
+input[type=text], textarea { width: 100%; font: inherit; color: var(--ink); background: var(--bg);
+  border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px }
+textarea { min-height: 150px; resize: vertical }
+input:focus-visible, textarea:focus-visible, button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px }
+.row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center }
+button { font: 600 .95rem var(--f-body); border-radius: 999px; padding: 10px 18px; cursor: pointer;
+  border: 1px solid var(--line); background: var(--paper); color: var(--ink) }
+button.primary { background: var(--accent); color: var(--accent-ink); border-color: var(--accent) }
+button:disabled { opacity: .5; cursor: default }
+.hint { font-size: .85rem; color: var(--muted) }
+.thumbs { display: flex; gap: 8px; flex-wrap: wrap }
+.thumbs figure { margin: 0; position: relative }
+.thumbs img { width: 84px; height: 84px; object-fit: cover; border-radius: 8px; border: 1px solid var(--line) }
+.thumbs button { position: absolute; top: -6px; right: -6px; padding: 0; width: 24px; height: 24px; font-size: .8rem }
+.status { font-size: .9rem; color: var(--muted) }
+.status.err { color: var(--warn) }
+
+/* uitleg */
+.explain { gap: 22px }
+.explain .meta { display: flex; flex-wrap: wrap; gap: 8px; align-items: center }
+.pill { font: 600 .75rem/1 var(--f-body); padding: 6px 10px; border-radius: 999px; background: var(--soft); color: var(--ink) }
+.pill.ex { background: var(--mark); color: var(--mark-ink) }
+.tldr { font-family: var(--f-display); font-size: 1.3rem; line-height: 1.4 }
+section.part { display: grid; gap: 8px }
+section.part p + p { margin-top: 6px }
+mark { background: var(--mark); color: var(--mark-ink); padding: 0 3px; border-radius: 3px }
+dl.terms { margin: 0; display: grid; gap: 12px }
+dl.terms div { display: grid; gap: 2px; padding: 12px 14px; border-radius: 10px; background: var(--soft) }
+dt { font-weight: 700 }
+dd { margin: 0 }
+.tick { font-family: var(--f-mono); font-size: .85em; letter-spacing: .02em }
+.impact { display: grid; gap: 10px }
+.impact div { display: grid; grid-template-columns: 92px 1fr; gap: 12px; align-items: start }
+.impact .tick { padding-top: 2px; color: var(--accent); font-weight: 500 }
+.quiz { border-top: 1px dashed var(--line); padding-top: 16px }
+details summary { cursor: pointer; font-weight: 600; color: var(--accent) }
+.followup { display: grid; gap: 10px; border-top: 1px solid var(--line); padding-top: 16px }
+.chat { display: grid; gap: 10px }
+.chat .q { font-weight: 600 }
+.chat .a { white-space: pre-wrap }
+
+/* archief */
+.archive ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px }
+.archive li button { width: 100%; text-align: left; border-radius: 10px; border: 0; background: transparent;
+  padding: 10px 12px; display: grid; gap: 2px; font-weight: 500 }
+.archive li button:hover, .archive li button[aria-current="true"] { background: var(--soft) }
+.archive small { color: var(--muted); font-weight: 400 }
+.empty { color: var(--muted); font-size: .95rem }
+.disclaim { font-size: .8rem; color: var(--muted) }
+@media (prefers-reduced-motion: no-preference) { .explain { animation: in .25s ease-out } @keyframes in { from { transform: translateY(4px) } } }
+</style>
+
+<div class="wrap">
+  <header>
+    <span class="eyebrow">InvestAnswers · in gewone taal</span>
+    <h1>James Uitgelegd</h1>
+    <p class="lede">Plak de tekst van een post van James, of voeg de screenshot of grafiek toe. Je krijgt uitleg in Jip-en-Janneke-taal: wat hij zegt, welke woorden je moet kennen, de achtergrond, en wat het betekent voor jouw BTC, SOL, Tesla en wereld-ETF.</p>
+  </header>
+
+  <form class="card" id="form">
+    <div style="display:grid;gap:6px">
+      <label for="title">Titel van de post</label>
+      <input type="text" id="title" placeholder="bijv. Who gets the CAPEX" autocomplete="off">
+    </div>
+    <div style="display:grid;gap:6px">
+      <label for="body">Tekst van de post</label>
+      <textarea id="body" placeholder="Plak hier wat James schreef. Een screenshot plakken (Cmd/Ctrl+V) kan ook."></textarea>
+    </div>
+    <div class="thumbs" id="thumbs"></div>
+    <div class="row">
+      <button type="submit" class="primary" id="go">Leg het uit</button>
+      <label class="hint" id="imgLabel" for="img" hidden><input type="file" id="img" accept="image/*" multiple style="display:none"><span style="text-decoration:underline;cursor:pointer">+ Screenshot of grafiek toevoegen</span></label>
+      <button type="button" id="stop" hidden>Stop</button>
+    </div>
+    <p class="status" id="status" aria-live="polite"></p>
+  </form>
+
+  <article class="card explain" id="out"></article>
+
+  <section class="card archive">
+    <h2>Eerder uitgelegd</h2>
+    <ul id="list"></ul>
+    <p class="empty" id="listEmpty">Nog niets bewaard. Elke post die je laat uitleggen komt hier te staan, zodat je kunt teruglezen.</p>
+  </section>
+
+  <p class="disclaim">Uitleg voor je eigen begrip, geen financieel advies. Claude ziet alleen wat je plakt en kan zich vergissen in koersen of cijfers.</p>
+</div>
+
+<script>
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+// **woord** in de uitleg wordt gemarkeerd
+const rich = s => esc(s).replace(/\*\*(.+?)\*\*/g, "<mark>$1</mark>").split(/\n\s*\n/).map(p => `<p>${p}</p>`).join("");
+
+const EXAMPLE = {
+  example: true,
+  title: "Who gets the CAPEX",
+  created: Date.now(),
+  data: {
+    tldr: "De grote techbedrijven geven honderden miljarden uit aan AI-computers. James laat zien welke bedrijven dat geld uiteindelijk binnenkrijgen.",
+    whatJamesSays: "**CAPEX** betekent: geld dat een bedrijf uitgeeft aan dingen die lang meegaan, zoals gebouwen en machines. Microsoft, Google, Amazon en Meta bouwen enorme datacenters voor AI.\n\nJames tekent als een soort rivier waar dat geld naartoe stroomt: naar chipmakers (Nvidia, Broadcom), naar de fabriek die de chips bakt (TSMC), naar geheugen (Micron) en naar stroom en koeling.",
+    terms: [
+      { term: "CAPEX", explain: "Investeringen in spullen die jaren meegaan. Denk aan een bakker die een nieuwe oven koopt." },
+      { term: "Hyperscaler", explain: "Een bedrijf met gigantische datacenters, zoals Google of Amazon. Zij huren rekenkracht uit aan de rest van de wereld." },
+      { term: "Sankey-diagram", explain: "Een plaatje met stromen: hoe dikker de streep, hoe meer geld die kant op gaat." }
+    ],
+    background: "Sinds ChatGPT (eind 2022) willen alle grote bedrijven voorop lopen met AI. Daarvoor heb je heel veel speciale chips nodig. Wie de schoppen verkoopt tijdens een goudkoorts verdient vaak het meest, en dat is waar James naar kijkt.",
+    forYou: [
+      { asset: "TSLA", text: "Tesla bouwt zelf ook AI-rekenkracht (voor zelfrijdende auto's en robots), dus Tesla is hier vooral klant, niet ontvanger van het geld." },
+      { asset: "Wereld-ETF", text: "Nvidia, Microsoft en Google zijn grote stukken van een wereld-ETF. Gaat het AI-feest door, dan merk je dat in je ETF." },
+      { asset: "BTC / SOL", text: "Indirect: als techaandelen stijgen, is de stemming vaak ook beter voor crypto. Maar dit gaat niet direct over crypto." }
+    ],
+    quiz: { question: "Waarom verdient een chipmaker aan AI, ook als niemand weet welke AI-app gaat winnen?", answer: "Omdat alle AI-bedrijven dezelfde chips moeten kopen. De chipmaker verkoopt de schoppen, wie er ook goud vindt." }
+  }
+};
+
+let sample = null, db = null, uid = null, images = [], current = null, ctl = null, posts = [];
+
+function renderExplain(p) {
+  current = p;
+  const d = p.data;
+  const date = new Date(p.created).toLocaleDateString("nl-NL", { day: "numeric", month: "long" });
+  $("#out").innerHTML = `
+    <div class="meta">${p.example ? '<span class="pill ex">Voorbeeld — plak een echte post om te starten</span>' : `<span class="pill">${esc(date)}</span>`}</div>
+    <h2>${esc(p.title || "Post van James")}</h2>
+    <p class="tldr">${esc(d.tldr)}</p>
+    <section class="part"><h3>Wat zegt James?</h3>${rich(d.whatJamesSays)}</section>
+    ${d.terms?.length ? `<section class="part"><h3>Woorden die je moet kennen</h3><dl class="terms">${d.terms.map(t => `<div><dt>${esc(t.term)}</dt><dd>${esc(t.explain)}</dd></div>`).join("")}</dl></section>` : ""}
+    <section class="part"><h3>De achtergrond</h3>${rich(d.background)}</section>
+    ${d.forYou?.length ? `<section class="part"><h3>Wat betekent dit voor jou?</h3><div class="impact">${d.forYou.map(f => `<div><span class="tick">${esc(f.asset)}</span><p>${esc(f.text)}</p></div>`).join("")}</div></section>` : ""}
+    ${d.quiz ? `<section class="part quiz"><h3>Snap je het? Testvraag</h3><p>${esc(d.quiz.question)}</p><details><summary>Toon antwoord</summary><p>${esc(d.quiz.answer)}</p></details></section>` : ""}
+    <div class="followup" ${sample ? "" : "hidden"}>
+      <h3>Nog een vraag over deze post?</h3>
+      <div class="chat" id="chat">${(p.chat || []).map(c => `<div><p class="q">${esc(c.q)}</p><p class="a">${esc(c.a)}</p></div>`).join("")}</div>
+      <form class="row" id="askForm"><input type="text" id="ask" placeholder="bijv. Wat is een rentebesluit?" style="flex:1;min-width:0" autocomplete="off"><button type="submit">Vraag</button></form>
+    </div>`;
+  $("#askForm").onsubmit = askFollowup;
+  renderList();
+}
+
+function renderList() {
+  $("#listEmpty").hidden = posts.length > 0;
+  $("#list").innerHTML = posts.map((p, i) => `<li><button type="button" data-i="${i}" aria-current="${current && current.id === p.id}">${esc(p.title || "Post van James")}<small>${new Date(p.created).toLocaleDateString("nl-NL", { day: "numeric", month: "short", year: "numeric" })} · ${esc((p.data?.tldr || "").slice(0, 90))}…</small></button></li>`).join("");
+  $("#list").querySelectorAll("button").forEach(b => b.onclick = () => { renderExplain(posts[+b.dataset.i]); $("#out").scrollIntoView({ behavior: "smooth" }); });
+}
+
+function prompt(title, body, nImg) {
+  return `Je bent een geduldige leraar die beleggen uitlegt aan Jaap (46, anesthesiemedewerker, geen financiële achtergrond). Hij is lid van InvestAnswers (James, een YouTuber/analist over crypto, Tesla, AI-aandelen en macro-economie) en wil elke post echt begrijpen.
+
+Jaap belegt in: Bitcoin (BTC), Solana (SOL), Tesla (TSLA) en een wereld-ETF (NT FGR World).
+
+Leg de post hieronder uit in het Nederlands, in Jip-en-Janneke-taal: korte zinnen, alledaagse vergelijkingen, geen jargon zonder uitleg. ${nImg ? `Er ${nImg === 1 ? "is 1 afbeelding" : `zijn ${nImg} afbeeldingen`} bijgevoegd (screenshot/grafiek uit de post): lees ze en leg uit wat erop staat.` : ""}
+Verzin geen cijfers of feiten die niet in de post staan; als iets onduidelijk is, zeg dat. Geef geen koop/verkoop-advies.
+
+Geef ALLEEN JSON terug in deze vorm:
+{
+ "title": "korte titel van de post (gebruik de opgegeven titel als die er is)",
+ "tldr": "1-2 zinnen: de kern",
+ "whatJamesSays": "wat James zegt, 2-4 korte alinea's gescheiden door een lege regel; markeer vaktermen met **woord**",
+ "terms": [{"term": "...", "explain": "uitleg met vergelijking uit het dagelijks leven"}],
+ "background": "de achtergrond/geschiedenis die je nodig hebt om dit te snappen, 1-3 alinea's",
+ "forYou": [{"asset": "BTC | SOL | TSLA | Wereld-ETF", "text": "wat dit (mogelijk) betekent, alleen waar relevant"}],
+ "quiz": {"question": "1 testvraag om te checken of hij het snapt", "answer": "het antwoord"}
+}
+
+Titel: ${title || "(geen titel)"}
+Post:
+"""
+${body || "(geen tekst, zie afbeelding)"}
+"""`;
+}
+
+function errCopy(e) {
+  return ({
+    not_granted: "Je hebt Claude geen toestemming gegeven. Herlaad de pagina om het opnieuw te proberen.",
+    rate_limited: "Even te veel verzoeken. Wacht een minuutje en probeer opnieuw.",
+    cancelled: "Gestopt.",
+  })[e?.code] || "Dat lukte niet: " + (e?.message || "onbekende fout") + ". Probeer het nog eens, of plak minder tekst.";
+}
+
+async function explain(ev) {
+  ev.preventDefault();
+  const title = $("#title").value.trim(), body = $("#body").value.trim();
+  if (!body && !images.length) { $("#status").textContent = "Plak eerst de tekst of voeg een screenshot toe."; return; }
+  if (!sample) { $("#status").textContent = "Claude is hier niet beschikbaar. Open de app op claude.ai."; return; }
+  ctl = new AbortController();
+  $("#go").disabled = true; $("#stop").hidden = false;
+  $("#status").className = "status"; $("#status").textContent = "Claude leest de post en schrijft de uitleg… (kan 20-60 seconden duren)";
+  try {
+    const data = await sample.json(prompt(title, body, images.length), { signal: ctl.signal, images: images.length ? images.map(i => i.blob) : undefined });
+    const p = { id: "p" + Date.now(), title: title || data.title || "Post van James", created: Date.now(), source: body.slice(0, 20000), data, chat: [] };
+    posts.unshift(p);
+    renderExplain(p);
+    $("#status").textContent = "";
+    $("#title").value = ""; $("#body").value = ""; images = []; renderThumbs();
+    $("#out").scrollIntoView({ behavior: "smooth" });
+    save(p);
+  } catch (e) {
+    $("#status").className = "status err"; $("#status").textContent = errCopy(e);
+  } finally {
+    $("#go").disabled = false; $("#stop").hidden = true;
+  }
+}
+
+async function askFollowup(ev) {
+  ev.preventDefault();
+  const q = $("#ask").value.trim();
+  if (!q || !current || !sample) return;
+  const p = current, chat = $("#chat");
+  const box = document.createElement("div");
+  box.innerHTML = `<p class="q">${esc(q)}</p><p class="a">Denkt na…</p>`;
+  chat.appendChild(box); $("#ask").value = "";
+  const a = box.querySelector(".a");
+  const ctx = `Je legt beleggen uit aan Jaap in eenvoudig Nederlands (Jip-en-Janneke-taal, korte zinnen, vergelijkingen uit het dagelijks leven, geen advies). Hij belegt in BTC, SOL, TSLA en een wereld-ETF.
+
+Post van James (InvestAnswers): "${p.title}"
+${p.source ? `Tekst:\n"""\n${p.source}\n"""\n` : ""}Eerdere uitleg (kern): ${p.data.tldr}
+${(p.chat || []).map(c => `Vraag: ${c.q}\nAntwoord: ${c.a}`).join("\n")}
+
+Nieuwe vraag van Jaap: ${q}
+Antwoord kort (max 150 woorden), zonder markdown-opmaak.`;
+  try {
+    const { text } = await sample(ctx, { cache: false, onText: ({ text }) => { a.textContent = text; } });
+    a.textContent = text;
+    p.chat = [...(p.chat || []), { q, a: text }];
+    if (!p.example) save(p);
+  } catch (e) { a.textContent = errCopy(e); }
+}
+
+async function save(p) {
+  if (!db || !uid || p.example) return;
+  try { await db.collection("data/users/" + uid + "/posts").doc(p.id).set({ title: p.title, created: p.created, source: p.source || "", data: p.data, chat: p.chat || [] }); }
+  catch (e) { $("#status").className = "status err"; $("#status").textContent = "Uitleg staat er, maar bewaren in je archief lukte niet."; }
+}
+
+function renderThumbs() {
+  $("#thumbs").innerHTML = images.map((im, i) => `<figure><img src="${im.url}" alt="Bijlage ${i + 1}"><button type="button" data-i="${i}" aria-label="Verwijder">✕</button></figure>`).join("");
+  $("#thumbs").querySelectorAll("button").forEach(b => b.onclick = () => { URL.revokeObjectURL(images[+b.dataset.i].url); images.splice(+b.dataset.i, 1); renderThumbs(); });
+}
+function addImages(files, max) {
+  for (const f of files) if (f.type.startsWith("image/") && images.length < max) images.push({ blob: f, url: URL.createObjectURL(f) });
+  renderThumbs();
+}
+
+$("#form").onsubmit = explain;
+$("#stop").onclick = () => ctl?.abort();
+renderExplain(EXAMPLE);
+
+(async () => {
+  sample = await claude.use("sample");
+  if (!sample) { $("#status").textContent = "Open deze app op claude.ai om posts te laten uitleggen."; $("#go").disabled = true; }
+  else {
+    renderExplain(current);
+    const caps = await sample.limits().catch(() => null);
+    if (caps?.images) {
+      const max = caps.images.maxCount || 4;
+      $("#imgLabel").hidden = false;
+      $("#img").onchange = e => { addImages(e.target.files, max); e.target.value = ""; };
+      $("#body").addEventListener("paste", e => { const f = [...(e.clipboardData?.files || [])]; if (f.length) { e.preventDefault(); addImages(f, max); } });
+    }
+  }
+  const user = await claude.use("user");
+  db = await claude.use("db");
+  if (db && user) {
+    uid = await user.id();
+    if (!uid) return;
+    db.collection("data/users/" + uid + "/posts").orderBy("created", "desc").limit(200).onSnapshot(snap => {
+      const keepId = current?.id;
+      posts = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      const again = posts.find(p => p.id === keepId);
+      if (again) current = again;
+      renderList();
+    }, () => {});
+  }
+})();
+</script>

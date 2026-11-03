@@ -313,7 +313,7 @@ const CONCEPTS = [
  {id:"review",cat:"Meesterschap",titel:"Reflectie en review",
   kern:"Gewoontes plus bewuste oefening leiden tot meesterschap.",
   uitleg:"Het nadeel van gewoontes is dat je stopt met opletten. Plan daarom vaste reflectiemomenten. Wekelijks: wat ging goed, wat niet, wat pas ik aan? Jaarlijks een integriteitsrapport: wat zijn mijn kernwaarden, leef ik ernaar, en hoe leg ik de lat hoger?",
-  toepassen:["Doe elke zondag de weekreview in Atoom.","Plan per kwartaal een identiteitscheck."],
+  toepassen:["Doe elke zondagmiddag de weekreview in Atoom.","Plan per kwartaal een identiteitscheck."],
   vraag:"Op welk vast moment in je week doe je je review?"},
  {id:"los",cat:"Meesterschap",titel:"Identiteit los vasthouden",
   kern:"Hoe meer iets je identiteit is, hoe moeilijker je erboven uitgroeit.",
@@ -344,7 +344,7 @@ const STAGES = [
  {id:"s7",fase:"Volhouden",titel:"Zeven stemmen",sub:"Vink 7 keer af",concepts:["wet4","plateau"],kind:"votes",
   intro:"Nu telt herhaling. Vink je gewoontes af op het tabblad Vandaag. Zeven stemmen is je eerste bewijs. Onthoud de regel: nooit twee keer missen."},
  {id:"s8",fase:"Volhouden",titel:"Eerste weekreview",sub:"Kijk terug en stel bij",concepts:["review"],kind:"review",
-  intro:"Een systeem verbetert alleen als je ernaar kijkt. Doe je eerste weekreview op het tabblad Review. Plan er een vast moment voor, bijvoorbeeld zondag na het ontbijt."},
+  intro:"Een systeem verbetert alleen als je ernaar kijkt. Doe je eerste weekreview op het tabblad Review. Jouw vaste moment: zondagmiddag. Dan verschijnt de review vanzelf op Vandaag."},
  {id:"s9",fase:"Meesterschap",titel:"Level up",sub:"De Goldilocks-regel",concepts:["goldilocks","genen"],kind:"level",
   intro:"Gaat een gewoonte vanzelf? Dan dreigt verveling. Maak hem net iets moeilijker: een level hoger. Gaat het juist zwaar, zak dan terug naar de tweeminutenversie.",
   vragen:[["s9a","Welke gewoonte is saai geworden, en wat is de volgende stap?"]]},
@@ -399,6 +399,17 @@ const IDENTITY_CHIPS=["Ik ben iemand die nooit twee trainingen mist","Ik ben een
 const AREAS=["Training","Slaap","Financiën","Inbox & organisatie","Vaderschap","Werk & ZZP","Mindset"];
 const SCORE_CHIPS=["Wekker uit","Telefoon checken in bed","Koffie","Mail openen","Charts checken","Naar dienst","Trainen","Avondeten","YouTube op de bank","Naar bed"];
 const REVIEW_Q=[["good","Wat ging goed deze week?"],["bad","Waar haperde het systeem, en waarom?"],["gold","Welke gewoonte is te makkelijk (saai) of te moeilijk? (Goldilocks)"],["vote","Waar heb je het vaakst op gestemd? Past dat bij wie je wilt zijn?"],["next","Eén aanpassing van 1% voor volgende week:"]];
+
+/* Startpakket van Jaap: trainen bouwen, telefoon in bed breken, review op zondagmiddag */
+const STARTER=()=>[
+ {type:"build",name:"Trainen",d:{identity:"Ik ben iemand die nooit twee trainingen mist",stack:"het omkleden na mijn dienst (vrije dag: na mijn eerste koffie)",where:"in de gym",cue:"ingepakte sporttas bij de voordeur",bundle:"mijn favoriete podcast luisteren",reframe:"Ik mag trainen, want het houdt me sterk voor mijn werk en mijn dochters",tribe:"mijn CrossFit-box",twoMin:"mijn sportkleding aantrekken",friction:"sporttas de avond ervoor inpakken",reward:"afvinken in Atoom en een eiwitshake",partner:"trainingsmaatje"}},
+ {type:"break",name:"Telefoon in bed",d:{trigger:"als ik in bed lig en de telefoon naast me ligt",motive:"ontspanning na een dienst",invisible:"vliegtuigmodus en scherm omlaag op het nachtkastje, alleen Sleep Cycle aan",cost:"slaap en herstel, en daarmee mijn trainingen",benefit:"uitgerust naar mijn dienst en naar de gym",friction:"bedtijdmodus om 22:30 die alles blokkeert behalve Sleep Cycle",partner:"Juna of Bo",contract:"Als ik toch in bed scrol, dan ligt de telefoon de volgende avond om 21:00 in de keuken",replace:"10 minuten lezen"}}
+];
+function addStarter(){
+  STARTER().forEach(s=>{if(!S.habits.some(h=>h.type===s.type&&h.name.toLowerCase()===s.name.toLowerCase()))S.habits.push(Object.assign({id:uid(),created:today(),log:{},level:1,levels:[]},s))});
+  const id=STARTER()[0].d.identity;if(!S.profile.identities.includes(id))S.profile.identities.push(id);
+  S.starterDone=true;
+}
 
 /* ============================ STATE ============================ */
 const KEY="atoom.v1";
@@ -496,6 +507,7 @@ function vOnboarding(){
     ${chipsHTML(IDENTITY_CHIPS,"ob-identity")}
     <div class="stack-s"><span class="f" style="font-weight:600">3 · Welke gebieden wil je aanpakken?</span>
       <div class="chips">${AREAS.map(a=>`<button type="button" class="chip ${OB.areas.includes(a)?"on":""}" data-act="area" data-val="${esc(a)}" aria-pressed="${OB.areas.includes(a)}">${esc(a)}</button>`).join("")}</div></div>
+    <p class="hint">Je startpakket wordt klaargezet: <b>Trainen</b>, <b>telefoon uit bed</b> en je weekreview op <b>zondagmiddag</b>.</p>
     <button class="btn block" data-act="start">Start mijn reis</button>
   </section>
   <section class="card">
@@ -521,6 +533,7 @@ function vVandaag(){
   const dn=dayNr();
   const c=CONCEPTS[(diff("2024-01-01",t)%CONCEPTS.length+CONCEPTS.length)%CONCEPTS.length];
   const missers=hs.filter(h=>miss(h));
+  const now=new Date(),reviewDue=now.getDay()===0&&now.getHours()>=12&&!S.reviews.some(r=>r.week===weekStart(t));
   return `
   <section class="stack-s" style="padding-top:4px">
     <span class="eyebrow">${greeting()}${S.profile.name?", "+esc(S.profile.name):""}</span>
@@ -531,6 +544,8 @@ function vVandaag(){
     <div class="stat"><b>${done}/${hs.length}</b><span>vandaag gedaan</span></div>
     <div class="stat"><b>${dn}</b><span>dag van je reis</span></div>
   </section>
+  ${reviewDue?`<section class="card soft"><span class="eyebrow">Zondagmiddag</span><h3>Tijd voor je weekreview</h3><p class="small">Vijf vragen, vijf minuten. Zo stel je je systeem elke week 1% bij.</p><button class="btn" data-act="goto" data-val="review">Start de review</button></section>`:""}
+  ${!S.starterDone?`<section class="card soft"><span class="eyebrow">Jouw startpakket</span><h3>Trainen + telefoon uit bed</h3><p class="small">Twee kant-en-klare contracten op basis van je antwoorden. Je kunt ze daarna aanpassen.</p><div class="row"><button class="btn" data-act="starter">Zet klaar</button><button class="link small" data-act="starterNo">Nee, zelf ontwerpen</button></div></section>`:""}
   ${missers.length?`<section class="card alert"><h3>Nooit twee keer missen</h3><p class="small">${missers.map(h=>`<b>${esc(h.name)}</b>`).join(", ")} ${missers.length>1?"liepen":"liep"} gisteren niet. Eén keer missen is een ongeluk. Vandaag is de dag die telt, ook als je alleen de tweeminutenversie doet.</p></section>`:""}
   <section class="stack">
     <div class="sec-head"><h2>Vandaag stemmen</h2>${hs.length?`<button class="link small" data-act="newbuild">+ Nieuw</button>`:""}</div>
@@ -633,7 +648,7 @@ function vReview(){
   <section class="stack-s" style="padding-top:4px">
     <span class="eyebrow">Week van ${toDate(ws).toLocaleDateString("nl-NL",{day:"numeric",month:"long"})}</span>
     <h1>Weekreview</h1>
-    <p class="muted">Gewoontes maken je automatisch. Reflectie houdt je wakker. Vijf vragen, vijf minuten.</p>
+    <p class="muted">Gewoontes maken je automatisch. Reflectie houdt je wakker. Vijf vragen, vijf minuten. Jouw vaste moment: zondagmiddag.</p>
   </section>
   <section class="card"><h3>Deze week</h3>
     ${rows.length?rows.map(r=>`<div class="stack-s"><div class="sec-head"><span class="small"><b>${esc(r.h.name)}</b></span><span class="eyebrow">${r.n}/${Math.max(r.poss,r.n)}</span></div><div class="progress"><i style="width:${r.poss?Math.min(100,r.n/r.poss*100):0}%;${r.h.type==="break"?"background:var(--good)":""}"></i></div></div>`).join(""):`<p class="small muted">Nog geen gewoontes om te meten.</p>`}
@@ -807,8 +822,10 @@ const A={
   start:()=>{
     S.profile.name=(OB.name||"").trim();S.profile.areas=OB.areas.slice();
     const id=(OB.identity||"").trim();if(id&&!S.profile.identities.includes(id))S.profile.identities.push(id);
-    S.profile.started=today();save();render();window.scrollTo(0,0);toast("Je reis is begonnen. Dag 1.");
+    S.profile.started=today();addStarter();save();render();window.scrollTo(0,0);toast("Je reis is begonnen. Dag 1.");
   },
+  starter:()=>{addStarter();save();render();toast("Startpakket klaar. Vink vanavond je eerste stem af.")},
+  starterNo:()=>{S.starterDone=true;save();render()},
   toggle:(el,id)=>{
     const h=S.habits.find(x=>x.id===id),t=today();if(!h)return;
     if(h.log[t])delete h.log[t];else{h.log[t]=1;toast(S.profile.identities[0]?"Stem uitgebracht: "+S.profile.identities[0]:"Stem uitgebracht")}

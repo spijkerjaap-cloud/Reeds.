@@ -1,0 +1,879 @@
+<!doctype html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#2F45D3">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Atoom">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
+<title>Atoom Systeem</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<meta name="description" content="Atoom: je dagelijkse systeem op basis van de wijsheden uit Atomic Habits. Leer, ontwerp, stem en review.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;700&family=Figtree:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: één smalle kolom (telefoon), sticky kop, vaste tabbalk onderin, sheets schuiven over het scherm. */
+:root{
+  --bg:#F2F4F9; --surface:#FFFFFF; --sunk:#E8ECF5; --ink:#141A2E; --muted:#5A627F; --line:#DCE1EE;
+  --accent:#2F45D3; --accent-ink:#FFFFFF; --accent-soft:#E3E7FB;
+  --spark:#E59A0B; --spark-soft:#FCEFD4;
+  --good:#1D9468; --warn:#C9741E; --bad:#C2413A;
+  --f-display:"Unbounded", "Arial Black", system-ui, sans-serif;
+  --f-body:"Figtree", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --f-mono:"JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace;
+  --r:14px;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0D1120; --surface:#161B2F; --sunk:#1D2340; --ink:#E7EBF7; --muted:#97A0BF; --line:#272F50;
+  --accent:#7D8DFF; --accent-ink:#0D1120; --accent-soft:#212A52;
+  --spark:#FFBF47; --spark-soft:#3A2F17;
+  --good:#4CC798; --warn:#F0A65B; --bad:#F27B70; color-scheme:dark;
+}}
+:root[data-theme="dark"]{
+  --bg:#0D1120; --surface:#161B2F; --sunk:#1D2340; --ink:#E7EBF7; --muted:#97A0BF; --line:#272F50;
+  --accent:#7D8DFF; --accent-ink:#0D1120; --accent-soft:#212A52;
+  --spark:#FFBF47; --spark-soft:#3A2F17;
+  --good:#4CC798; --warn:#F0A65B; --bad:#F27B70; color-scheme:dark;
+}
+*{box-sizing:border-box}
+html,body{background:var(--bg)}
+body{color:var(--ink);font-family:var(--f-body);font-size:16px;line-height:1.5;-webkit-tap-highlight-color:transparent}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:30;background:var(--bg)}
+button,input,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.wrap{max-width:580px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+main.wrap{padding-block:8px calc(104px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;gap:18px}
+
+/* kop */
+.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:color-mix(in srgb,var(--bg) 88%,transparent);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
+.top .wrap{display:flex;align-items:center;justify-content:space-between;padding-block:12px}
+.brand{display:flex;align-items:center;gap:10px;font-family:var(--f-display);font-weight:700;font-size:18px;letter-spacing:.02em}
+.brand svg{width:28px;height:28px}
+.top .date{font-family:var(--f-mono);font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em}
+
+/* typografie */
+h1,h2,h3{margin:0;text-wrap:balance}
+h1{font-family:var(--f-display);font-weight:700;font-size:clamp(26px,7vw,34px);line-height:1.12;letter-spacing:-.01em}
+h2{font-family:var(--f-display);font-weight:500;font-size:20px;line-height:1.2}
+h3{font-size:17px;font-weight:700;line-height:1.3}
+p{margin:0}
+.eyebrow{font-family:var(--f-mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+.muted{color:var(--muted)}
+.small{font-size:14px}
+.stack{display:flex;flex-direction:column;gap:12px}
+.stack-s{display:flex;flex-direction:column;gap:6px}
+.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.sec-head{display:flex;justify-content:space-between;align-items:baseline;gap:12px}
+
+/* blokken */
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:16px;display:flex;flex-direction:column;gap:12px;min-width:0}
+.card.soft{background:var(--accent-soft);border-color:transparent}
+.quote{font-family:var(--f-display);font-weight:500;font-size:19px;line-height:1.3;text-wrap:balance}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.stat{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px;display:flex;flex-direction:column;gap:2px;min-width:0}
+.stat b{font-family:var(--f-mono);font-size:22px;font-weight:600;font-variant-numeric:tabular-nums;line-height:1.1}
+.stat span{font-size:12px;color:var(--muted);line-height:1.25}
+.stat.spark b{color:var(--spark)}
+
+/* knoppen */
+.btn{border:0;border-radius:999px;padding:12px 18px;font-weight:700;background:var(--accent);color:var(--accent-ink);display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:44px;text-decoration:none}
+.btn.ghost{background:transparent;color:var(--ink);border:1px solid var(--line)}
+.btn.quiet{background:var(--sunk);color:var(--ink)}
+.btn.danger{background:var(--bad);color:#fff}
+.btn.block{width:100%}
+.btn:active{transform:scale(.98)}
+.link{background:none;border:0;padding:0;color:var(--accent);font-weight:600;text-align:left}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:6px 12px;font-size:14px;line-height:1.3;text-align:left}
+.chip.on{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.chip.cat{font-family:var(--f-mono);font-size:12px;letter-spacing:.04em}
+
+/* formulier */
+label.f{display:flex;flex-direction:column;gap:6px;font-weight:600;font-size:15px}
+input[type=text],textarea{width:100%;border:1px solid var(--line);background:var(--surface);border-radius:12px;padding:11px 12px;font-size:16px;line-height:1.4;font-weight:400}
+textarea{resize:vertical;min-height:72px}
+input::placeholder,textarea::placeholder{color:var(--muted);opacity:.8}
+.hint{font-size:13px;color:var(--muted);font-weight:400}
+.tip{background:var(--spark-soft);border-radius:12px;padding:10px 12px;font-size:14px}
+.tip b{color:var(--ink)}
+
+/* gewoonte-rij */
+.habits{display:flex;flex-direction:column;gap:8px}
+.hrow{display:grid;grid-template-columns:48px 1fr auto;gap:10px;align-items:center;background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:10px 12px 10px 10px}
+.check{width:48px;height:48px;border-radius:50%;border:2px solid var(--line);background:var(--bg);display:grid;place-items:center;color:transparent;transition:background .2s,border-color .2s}
+.check svg{width:22px;height:22px}
+.hrow.done .check{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.hrow.break .check{border-style:dashed}
+.hrow.break.done .check{background:var(--good);border-color:var(--good);border-style:solid}
+.hbody{background:none;border:0;padding:0;text-align:left;display:flex;flex-direction:column;gap:3px;min-width:0}
+.hname{font-weight:700;font-size:16px;line-height:1.25}
+.hmeta{font-size:13px;color:var(--muted);line-height:1.3;overflow-wrap:anywhere}
+.dots{display:flex;gap:4px;margin-top:2px}
+.dots i{width:8px;height:8px;border-radius:50%;background:var(--sunk);display:block}
+.dots i.on{background:var(--accent)}
+.hrow.break .dots i.on{background:var(--good)}
+.dots i.now{outline:1.5px solid var(--muted);outline-offset:1px}
+.streak{font-family:var(--f-mono);font-weight:600;font-size:18px;color:var(--spark);text-align:right;font-variant-numeric:tabular-nums;line-height:1}
+.streak small{font-size:11px;color:var(--muted);display:block;font-weight:400;margin-top:3px}
+.badge{display:inline-flex;align-items:center;gap:4px;font-family:var(--f-mono);font-size:11px;letter-spacing:.06em;text-transform:uppercase;padding:3px 8px;border-radius:999px;background:var(--sunk);color:var(--muted)}
+.badge.good{background:color-mix(in srgb,var(--good) 18%,transparent);color:var(--good)}
+.badge.warn{background:color-mix(in srgb,var(--warn) 18%,transparent);color:var(--warn)}
+.badge.acc{background:var(--accent-soft);color:var(--accent)}
+.alert{border-left:0;background:color-mix(in srgb,var(--warn) 14%,var(--surface));border:1px solid color-mix(in srgb,var(--warn) 40%,transparent)}
+
+/* reis */
+.progress{height:8px;border-radius:99px;background:var(--sunk);overflow:hidden}
+.progress i{display:block;height:100%;background:var(--accent);border-radius:99px}
+.phase{display:flex;flex-direction:column;gap:8px}
+.stage{display:grid;grid-template-columns:36px 1fr auto;gap:12px;align-items:center;background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:12px;text-align:left;width:100%}
+.stage .num{width:36px;height:36px;border-radius:50%;display:grid;place-items:center;font-family:var(--f-mono);font-weight:600;font-size:14px;background:var(--sunk);color:var(--muted)}
+.stage.done .num{background:var(--good);color:#fff}
+.stage.next{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+.stage.next .num{background:var(--accent);color:var(--accent-ink)}
+.stage .t{font-weight:700;line-height:1.25}
+.stage .s{font-size:13px;color:var(--muted);line-height:1.3}
+.chev{color:var(--muted)}
+
+/* wijsheid */
+.concept{display:flex;flex-direction:column;gap:4px;text-align:left;background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:14px;width:100%}
+.concept .kern{font-size:14px;color:var(--muted);line-height:1.4}
+ul.list{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:6px}
+
+/* scorecard */
+.sc{display:grid;grid-template-columns:1fr auto auto;gap:8px;align-items:center;padding:8px 0;border-bottom:1px solid var(--line)}
+.sc:last-child{border-bottom:0}
+.rate{display:flex;gap:4px}
+.rate button{width:36px;height:36px;border-radius:10px;border:1px solid var(--line);background:var(--bg);font-family:var(--f-mono);font-weight:600}
+.rate button.on.p{background:var(--good);border-color:var(--good);color:#fff}
+.rate button.on.n{background:var(--bad);border-color:var(--bad);color:#fff}
+.rate button.on.e{background:var(--muted);border-color:var(--muted);color:var(--bg)}
+.x{width:36px;height:36px;border-radius:10px;border:0;background:none;color:var(--muted);font-size:20px}
+
+/* grid 35 dagen */
+.cal{display:grid;grid-template-columns:repeat(7,1fr);gap:5px}
+.cal i{aspect-ratio:1;border-radius:6px;background:var(--sunk);display:block;max-width:100%}
+.cal i.on{background:var(--accent)}
+.cal i.fut{background:transparent;border:1px dashed var(--line)}
+.cal.break i.on{background:var(--good)}
+
+/* contract */
+.contract{font-size:16px;line-height:1.6;background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:16px}
+.contract b{font-weight:700;background:var(--accent-soft);padding:0 4px;border-radius:4px;box-decoration-break:clone;-webkit-box-decoration-break:clone}
+dl.kv{margin:0;display:flex;flex-direction:column;gap:10px}
+dl.kv div{display:flex;flex-direction:column;gap:2px}
+dl.kv dt{font-family:var(--f-mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+dl.kv dd{margin:0}
+
+/* grafiek */
+.chart svg{width:100%;height:auto;display:block;max-width:100%}
+.chart text{font-family:var(--f-mono);font-size:9px;fill:var(--muted)}
+
+/* tabbalk */
+.tabs{position:fixed;left:0;right:0;bottom:0;z-index:25;background:var(--surface);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom,0px);padding-left:max(8px,env(safe-area-inset-left,0px));padding-right:max(8px,env(safe-area-inset-right,0px))}
+.tabs .in{max-width:580px;margin:0 auto;display:grid;grid-template-columns:repeat(5,1fr)}
+.tabs a{display:flex;flex-direction:column;align-items:center;gap:3px;padding:9px 0 8px;color:var(--muted);text-decoration:none;font-size:11px;font-weight:600}
+.tabs a svg{width:22px;height:22px}
+.tabs a.on{color:var(--accent)}
+
+/* sheet */
+.sheet{position:fixed;inset:0;z-index:40;background:var(--bg);overflow-y:auto;-webkit-overflow-scrolling:touch;padding-top:env(safe-area-inset-top,0px);animation:up .22s ease-out}
+.sheet .wrap{padding-block:8px calc(32px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;gap:18px}
+.sheet-top{display:flex;justify-content:space-between;align-items:center;gap:12px;position:sticky;top:0;background:var(--bg);padding-block:10px;z-index:2}
+.close{width:40px;height:40px;border-radius:50%;border:1px solid var(--line);background:var(--surface);display:grid;place-items:center;font-size:20px;line-height:1}
+.steps{display:flex;gap:4px;flex:1}
+.steps i{flex:1;height:5px;border-radius:9px;background:var(--sunk)}
+.steps i.on{background:var(--accent)}
+.foot{display:flex;gap:10px}
+.foot .btn{flex:1}
+@keyframes up{from{transform:translateY(24px);opacity:.4}to{transform:none;opacity:1}}
+
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(84px + env(safe-area-inset-bottom,0px));z-index:60;background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:999px;font-weight:600;font-size:14px;max-width:calc(100% - 32px);text-align:center;box-shadow:0 6px 24px rgba(0,0,0,.18)}
+@keyframes pop{0%{transform:scale(1)}40%{transform:scale(1.18)}100%{transform:scale(1)}}
+.pop{animation:pop .35s ease-out}
+details summary{cursor:pointer;font-weight:600}
+@media (prefers-reduced-motion: reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<header class="top"><div class="wrap">
+  <div class="brand">
+    <svg viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="16" r="3.4" fill="var(--spark)"/><ellipse cx="16" cy="16" rx="13" ry="5.2" fill="none" stroke="var(--accent)" stroke-width="1.8"/><ellipse cx="16" cy="16" rx="13" ry="5.2" fill="none" stroke="var(--accent)" stroke-width="1.8" transform="rotate(60 16 16)"/><ellipse cx="16" cy="16" rx="13" ry="5.2" fill="none" stroke="var(--accent)" stroke-width="1.8" transform="rotate(-60 16 16)"/></svg>
+    Atoom
+  </div>
+  <div class="date" id="hdate"></div>
+</div></header>
+
+<main class="wrap" id="main"></main>
+
+<nav class="tabs" aria-label="Hoofdmenu"><div class="in">
+  <a href="#vandaag" data-tab="vandaag"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>Vandaag</a>
+  <a href="#reis" data-tab="reis"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="19" r="2"/><circle cx="18" cy="5" r="2"/><path d="M8 19h8a3 3 0 0 0 0-6H8a3 3 0 0 1 0-6h8"/></svg>Reis</a>
+  <a href="#gewoontes" data-tab="gewoontes"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="1.8" fill="currentColor"/><ellipse cx="12" cy="12" rx="10" ry="4"/><ellipse cx="12" cy="12" rx="10" ry="4" transform="rotate(60 12 12)"/><ellipse cx="12" cy="12" rx="10" ry="4" transform="rotate(-60 12 12)"/></svg>Gewoontes</a>
+  <a href="#wijsheid" data-tab="wijsheid"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M4 5a2 2 0 0 1 2-2h13v16H6a2 2 0 0 0-2 2z"/><path d="M4 21V5M8 7h7"/></svg>Wijsheid</a>
+  <a href="#review" data-tab="review"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5M12 7v5l3 2"/></svg>Review</a>
+</div></nav>
+
+<div class="sheet" id="sheet" hidden></div>
+<div class="toast" id="toast" role="status" hidden></div>
+
+<script>
+(function(){
+"use strict";
+
+/* ============================ KENNIS ============================ */
+const CONCEPTS = [
+ {id:"procent",cat:"Fundament",titel:"1% beter per dag",
+  kern:"Kleine verbeteringen stapelen zich op als rente: 1% per dag is na een jaar bijna 38 keer beter.",
+  uitleg:"Gewoontes zijn de samengestelde rente van zelfverbetering. Eén procent beter valt vandaag niemand op, jou ook niet. Maar 1,01 tot de macht 365 is 37,8. Andersom werkt het net zo hard: 1% slechter per dag brengt je na een jaar naar 0,03. Je resultaten zijn een vertraagde meting van je gewoontes. Kijk dus naar je richting, niet naar waar je vandaag staat.",
+  toepassen:["Vraag bij elke keuze: maakt dit me 1% beter of 1% slechter?","Meet de trend, niet het eindpunt.","Zie het als DCA: elke kleine inleg telt, het rendement komt later."],
+  vraag:"Welk gebied zou over een jaar het meest veranderen als je er elke dag 1% beter in wordt?"},
+ {id:"plateau",cat:"Fundament",titel:"Het plateau van latent potentieel",
+  kern:"Resultaten lopen achter op inspanning. Het werk is niet verloren, het wordt opgeslagen.",
+  uitleg:"We verwachten dat vooruitgang lineair gaat, maar gewoontes werken met vertraging. In het begin lijkt er niets te gebeuren: het dal van teleurstelling. Een ijsblok smelt pas bij 0 graden, ook als je hem al van −5 naar −1 hebt opgewarmd. Wie in het dal stopt, mist de doorbraak die eraan zat te komen.",
+  toepassen:["Verwacht de eerste weken weinig zichtbaar resultaat.","Je tracker is het bewijs dat je opwarmt.","Beoordeel een nieuwe gewoonte pas na minstens acht weken."],
+  vraag:"Waar ben je eerder gestopt terwijl je eigenlijk in het dal van teleurstelling zat?"},
+ {id:"systemen",cat:"Fundament",titel:"Systemen boven doelen",
+  kern:"Je stijgt niet naar het niveau van je doelen. Je zakt naar het niveau van je systemen.",
+  uitleg:"Winnaars en verliezers hebben vaak hetzelfde doel. Het verschil zit in het systeem: de dagelijkse processen die tot resultaat leiden. Doelen geven richting, systemen zorgen voor vooruitgang. Doelen hebben ook nadelen: je stelt je geluk uit tot je het doel haalt, en daarna valt je motivatie weg. Verliefd worden op het proces lost dat op.",
+  toepassen:["Schrijf achter elk doel het dagelijkse systeem dat het oplevert.","Vier dat je systeem draaide, ook als het resultaat nog uitblijft.","Een trader zonder systeem gokt. Een sporter zonder schema hoopt."],
+  vraag:"Wat is je belangrijkste doel van dit jaar, en welk dagelijks systeem hoort erbij?"},
+ {id:"identiteit",cat:"Identiteit",titel:"Identiteit eerst",
+  kern:"De diepste verandering zit niet in wat je wilt bereiken, maar in wie je wilt worden.",
+  uitleg:"Verandering heeft drie lagen: uitkomsten (wat je krijgt), processen (wat je doet) en identiteit (wat je over jezelf gelooft). De meeste mensen beginnen bij uitkomsten. Gewoontes die blijven, beginnen bij identiteit. \"Ik probeer te stoppen met roken\" is iets anders dan \"Ik ben geen roker\". Het doel is niet een marathon lopen, het doel is een hardloper worden.",
+  toepassen:["Formuleer gewoontes als \"Ik ben iemand die…\"","Twijfel je? Vraag: wat zou zo iemand nu doen?","Houd je identiteit los genoeg om mee te groeien."],
+  vraag:"Wie wil je zijn? Welk type persoon haalt de resultaten die jij wilt?"},
+ {id:"stemmen",cat:"Identiteit",titel:"Elke actie is een stem",
+  kern:"Elke keer dat je een gewoonte uitvoert, stem je op het type persoon dat je wilt worden.",
+  uitleg:"Je identiteit ontstaat uit bewijs. Elke training is een stem voor \"ik ben een sporter\". Je hoeft niet unaniem te winnen, een meerderheid is genoeg. Daarom tellen kleine acties: het zijn stemmen. Het proces heeft twee stappen: bepaal wie je wilt zijn, en bewijs het jezelf met kleine overwinningen.",
+  toepassen:["Elke afvinking in Atoom telt als stem. Kijk naar je teller.","Een slechte dag is één stem tegen, geen verloren verkiezing.","Kies acties die voor jou overtuigend bewijs zijn."],
+  vraag:"Welke kleine actie is vandaag een stem voor wie je wilt worden?"},
+ {id:"lus",cat:"Mechanisme",titel:"De gewoonte-lus",
+  kern:"Elke gewoonte volgt vier stappen: signaal, verlangen, reactie, beloning.",
+  uitleg:"Het signaal zet je brein aan het werk. Het verlangen is de motivatie: je wilt niet de handeling zelf, je wilt de verandering in hoe je je voelt. De reactie is de gewoonte zelf. De beloning stilt het verlangen en leert je brein dat deze lus de moeite waard is. Uit deze lus volgen de vier wetten van gedragsverandering.",
+  toepassen:["Signaal → maak het zichtbaar","Verlangen → maak het aantrekkelijk","Reactie → maak het makkelijk","Beloning → maak het bevredigend"],
+  vraag:"Kies een gewoonte die je al hebt. Wat zijn het signaal, het verlangen, de reactie en de beloning?"},
+ {id:"wet1",cat:"De 4 wetten",titel:"Wet 1 · Maak het zichtbaar",
+  kern:"Je kunt een gewoonte pas veranderen als je je ervan bewust bent.",
+  uitleg:"Veel gedrag gaat automatisch. Begin daarom met een gewoonte-scorecard: zet je dagelijkse handelingen op een rij en beoordeel ze. Gebruik daarna een implementatie-intentie: \"Ik ga [gedrag] doen om [tijd] in [plek].\" Of gebruik habit stacking: \"Na [huidige gewoonte] ga ik [nieuwe gewoonte].\" Ontwerp je omgeving zo dat het signaal voor goed gedrag in het zicht ligt. Eén plek, één gebruik.",
+  toepassen:["Maak de gewoonte-scorecard in je Reis.","Met wisselende diensten werkt een moment beter dan een kloktijd: \"na het omkleden na mijn dienst\".","Sporttas bij de deur, boek op je kussen."],
+  vraag:"Welke handeling doe je elke dag zonder uitzondering, zodat je er een nieuwe gewoonte achter kunt plakken?"},
+ {id:"inv1",cat:"Breken",titel:"Inversie 1 · Maak het onzichtbaar",
+  kern:"Haal het signaal van een slechte gewoonte uit je omgeving.",
+  uitleg:"Zelfbeheersing is een kortetermijnstrategie. Mensen met veel discipline zijn vooral goed in het vermijden van verleidelijke situaties. Een signaal dat je niet ziet, zet niets in gang.",
+  toepassen:["Telefoon 's nachts in de keuken laden.","Trading-apps van je beginscherm, meldingen uit.","Mail op vaste momenten openen, niet als eerste na het wakker worden."],
+  vraag:"Welk signaal zet jouw hardnekkigste slechte gewoonte in gang, en hoe haal je het weg?"},
+ {id:"wet2",cat:"De 4 wetten",titel:"Wet 2 · Maak het aantrekkelijk",
+  kern:"Hoe aantrekkelijker iets is, hoe groter de kans dat het een gewoonte wordt.",
+  uitleg:"Dopamine piekt al bij de verwachting van een beloning. Gebruik temptation bundling: koppel iets wat je moet doen aan iets wat je graag doet. Sluit je aan bij een groep waar jouw gewenste gedrag normaal is: we nemen gewoontes over van de mensen dichtbij, van de meerderheid en van mensen met status. Herformuleer \"ik moet\" naar \"ik mag\".",
+  toepassen:["Je favoriete podcast alleen tijdens cardio of tijdens mail verwerken.","Train op een plek waar trainen normaal is.","\"Ik moet trainen\" wordt \"Ik mag mijn lichaam sterk houden voor mijn werk en mijn dochters.\""],
+  vraag:"Wat vind je echt leuk dat je kunt koppelen aan een gewoonte die je moet doen?"},
+ {id:"inv2",cat:"Breken",titel:"Inversie 2 · Maak het onaantrekkelijk",
+  kern:"Herformuleer je denken: zet de voordelen van vermijden voorop.",
+  uitleg:"Achter elk gedrag zit een oppervlakkig verlangen en een dieper motief: rust, verbinding, status, controle. Een slechte gewoonte is vaak een oplossing voor een echt probleem, alleen een slechte oplossing. Maak de kosten zichtbaar en zoek een betere oplossing voor hetzelfde motief.",
+  toepassen:["Schrijf op wat de gewoonte je echt kost: tijd, slaap, geld, focus.","Benoem het verlangen eronder: zoek ik rust, controle of afleiding?"],
+  vraag:"Welk dieper motief bedient jouw slechte gewoonte eigenlijk?"},
+ {id:"wet3",cat:"De 4 wetten",titel:"Wet 3 · Maak het makkelijk",
+  kern:"Herhaling telt, niet tijd. Verlaag de drempel tot mislukken bijna onmogelijk is.",
+  uitleg:"Een gewoonte wordt automatisch door het aantal herhalingen, niet door het aantal dagen. Mensen kiezen de weg van de minste weerstand, dus haal frictie weg bij goed gedrag. Gebruik de tweeminutenregel: elke nieuwe gewoonte moet in twee minuten te doen zijn. \"Elke dag lezen\" wordt \"één bladzijde lezen\". Eerst verschijnen, dan verbeteren. Let op beslissende momenten: kleine keuzes die de rest van je dag bepalen. Automatiseer wat kan.",
+  toepassen:["Leg je trainingskleding de avond ervoor klaar.","Automatiseer je DCA-inleg zodat je er niet over hoeft na te denken.","De tweeminutenversie is een ingang, geen einddoel."],
+  vraag:"Wat is de tweeminutenversie van de gewoonte die je wilt bouwen?"},
+ {id:"inv3",cat:"Breken",titel:"Inversie 3 · Maak het moeilijk",
+  kern:"Verhoog de frictie tot het gedrag te veel moeite kost.",
+  uitleg:"Gebruik een commitment device: een keuze die je nu maakt en die je gedrag later vastlegt. Een app-blokker, een vaste orderlimiet, geen snacks in huis. Hoe meer stappen tussen jou en de slechte gewoonte, hoe minder vaak hij gebeurt.",
+  toepassen:["Log uit op je exchange na je wekelijkse check.","Zet een schermtijdlimiet op YouTube en social media.","Frictie begint in de supermarkt: wat je niet koopt, eet je niet."],
+  vraag:"Welke drie extra stappen kun je tussen jezelf en je slechte gewoonte zetten?"},
+ {id:"wet4",cat:"De 4 wetten",titel:"Wet 4 · Maak het bevredigend",
+  kern:"Wat direct beloond wordt, herhaal je. Wat direct pijn doet, vermijd je.",
+  uitleg:"Je brein kiest voor directe beloning, terwijl goede gewoontes pas later betalen. Geef jezelf daarom direct na afloop een kleine beloning. Een gewoonte-tracker is zelf al een beloning: afvinken voelt goed en je ziet je voortgang. De belangrijkste regel: nooit twee keer missen. Eén keer missen is een ongeluk. Twee keer is het begin van een nieuwe gewoonte.",
+  toepassen:["Vink direct af in Atoom. Het afvinken is de beloning.","Een dag gemist? Dan is vandaag de belangrijkste dag.","Zet het bedrag dat je bespaart meteen apart."],
+  vraag:"Welke directe beloning kun je jezelf geven die je identiteit niet ondermijnt?"},
+ {id:"inv4",cat:"Breken",titel:"Inversie 4 · Maak het onbevredigend",
+  kern:"Maak de pijn van een slechte gewoonte direct voelbaar.",
+  uitleg:"Een accountability partner maakt een overtreding direct ongemakkelijk: iemand kijkt mee. Een gewoontecontract legt vast wat je gaat doen en wat de consequentie is als je het niet doet, getekend door jou en iemand anders.",
+  toepassen:["Spreek met een trainingsmaatje af dat je elkaar appt na de training.","Schrijf een contract: \"Als ik toch …, dan …\""],
+  vraag:"Wie zou je eerlijk aanspreken als je terugvalt?"},
+ {id:"goldilocks",cat:"Meesterschap",titel:"De Goldilocks-regel",
+  kern:"Je blijft gemotiveerd bij taken die net binnen je bereik liggen.",
+  uitleg:"Te makkelijk is saai, te moeilijk ontmoedigt. Net boven je huidige kunnen zit de zone waar motivatie piekt. De grootste bedreiging voor succes is niet falen, maar verveling. Professionals houden zich aan het schema, amateurs laten zich leiden door hun zin. Werk ook op de dagen dat het niet leuk is.",
+  toepassen:["Voelt een gewoonte saai? Level hem op.","Voelt hij zwaar? Terug naar de tweeminutenversie.","Op slechte dagen: de kleinste versie, maar wel doen."],
+  vraag:"Welke gewoonte is inmiddels te makkelijk geworden, en wat is de volgende stap?"},
+ {id:"genen",cat:"Meesterschap",titel:"Kies je speelveld",
+  kern:"Kies gewoontes en spellen die bij je aanleg en persoonlijkheid passen.",
+  uitleg:"Je genen bepalen niet je lot, wel waar je kansen liggen. Zoek waar je van nature sterk bent: wat voelt als spel voor jou en als werk voor anderen? Waar vergeet je de tijd? Combineer vaardigheden tot een eigen niche waar minder concurrentie is.",
+  toepassen:["Verken eerst breed, focus daarna op wat werkt.","Na bijna twintig jaar trainen weet je wat je energie geeft. Gebruik dat als anker voor nieuwe gewoontes."],
+  vraag:"Wat voelt voor jou als spel, terwijl het voor anderen werk is?"},
+ {id:"review",cat:"Meesterschap",titel:"Reflectie en review",
+  kern:"Gewoontes plus bewuste oefening leiden tot meesterschap.",
+  uitleg:"Het nadeel van gewoontes is dat je stopt met opletten. Plan daarom vaste reflectiemomenten. Wekelijks: wat ging goed, wat niet, wat pas ik aan? Jaarlijks een integriteitsrapport: wat zijn mijn kernwaarden, leef ik ernaar, en hoe leg ik de lat hoger?",
+  toepassen:["Doe elke zondag de weekreview in Atoom.","Plan per kwartaal een identiteitscheck."],
+  vraag:"Op welk vast moment in je week doe je je review?"},
+ {id:"los",cat:"Meesterschap",titel:"Identiteit los vasthouden",
+  kern:"Hoe meer iets je identiteit is, hoe moeilijker je erboven uitgroeit.",
+  uitleg:"Hangt je identiteit volledig aan één rol (sporter, trader, je functie), dan raakt elke verandering je diep. Definieer jezelf liever via eigenschappen dan via rollen. Niet \"ik ben een CrossFitter\" maar \"ik ben iemand die fysiek en mentaal sterk is\". Dat overleeft een blessure, een nieuwe baan en een nieuwe levensfase.",
+  toepassen:["Herschrijf je identiteit als eigenschap in plaats van rol."],
+  vraag:"Welke rol bepaalt je identiteit nu te sterk?"}
+];
+const CATS=["Alles","Fundament","Identiteit","Mechanisme","De 4 wetten","Breken","Meesterschap"];
+
+/* ============================ REIS ============================ */
+const STAGES = [
+ {id:"s1",fase:"Fundament",titel:"De kracht van 1%",sub:"Snap waarom klein wint",concepts:["procent","plateau"],
+  intro:"Alles begint met het besef dat kleine stappen niet klein blijven. Lees de twee wijsheden en beantwoord de vragen.",
+  vragen:[["s1a","Welk gebied in je leven zou over een jaar het meest veranderen als je er elke dag 1% beter in wordt?"],["s1b","Welke gewoonte maakt je nu elke dag 1% slechter?"],["s1c","Waar ben je eerder gestopt terwijl je in het dal van teleurstelling zat?"]]},
+ {id:"s2",fase:"Fundament",titel:"Systemen boven doelen",sub:"Van doel naar dagelijks proces",concepts:["systemen"],
+  intro:"Een doel zonder systeem is een wens. Vertaal je belangrijkste doel naar wat je elke dag doet.",
+  vragen:[["s2a","Wat is je belangrijkste doel voor de komende twaalf maanden?"],["s2b","Welk dagelijks systeem levert dat doel op, ook als je het doel zou vergeten?"],["s2c","Hoe maak je het proces zelf leuk, zodat je niet op het resultaat hoeft te wachten?"]]},
+ {id:"s3",fase:"Identiteit",titel:"Kies wie je wordt",sub:"Schrijf je identiteit",concepts:["identiteit","stemmen"],kind:"identity",
+  intro:"Gewoontes die blijven beginnen bij identiteit. Schrijf minstens één zin die begint met \"Ik ben iemand die…\". Elke afvinking wordt daarna een stem voor die persoon.",
+  vragen:[["s3a","Welk type persoon haalt de resultaten die jij wilt?"],["s3b","Welke overtuiging over jezelf houdt je nu tegen?"]]},
+ {id:"s4",fase:"Bewustzijn",titel:"Gewoonte-scorecard",sub:"Breng je dag in kaart",concepts:["wet1","lus"],kind:"scorecard",
+  intro:"Schrijf op wat je op een normale dag doet, van wakker worden tot slapen. Geef elke handeling een + (helpt je worden wie je wilt zijn), − (werkt tegen) of = (neutraal). Niet oordelen, alleen zien.",
+  vragen:[["s4a","Wat valt je op aan je scorecard?"]]},
+ {id:"s5",fase:"Bouwen",titel:"Bouw je eerste gewoonte",sub:"Ontwerp met de 4 wetten",concepts:["wet1","wet2","wet3","wet4"],kind:"build",
+  intro:"Kies één gewoonte die past bij je identiteit en ontwerp hem met de vier wetten: zichtbaar, aantrekkelijk, makkelijk, bevredigend. Begin klein. Echt klein."},
+ {id:"s6",fase:"Bouwen",titel:"Breek één gewoonte",sub:"Gebruik de inversies",concepts:["inv1","inv2","inv3","inv4"],kind:"break",
+  intro:"Pak de gewoonte die je het meeste kost. Draai de vier wetten om: onzichtbaar, onaantrekkelijk, moeilijk, onbevredigend. En kies een vervanging die hetzelfde verlangen bedient."},
+ {id:"s7",fase:"Volhouden",titel:"Zeven stemmen",sub:"Vink 7 keer af",concepts:["wet4","plateau"],kind:"votes",
+  intro:"Nu telt herhaling. Vink je gewoontes af op het tabblad Vandaag. Zeven stemmen is je eerste bewijs. Onthoud de regel: nooit twee keer missen."},
+ {id:"s8",fase:"Volhouden",titel:"Eerste weekreview",sub:"Kijk terug en stel bij",concepts:["review"],kind:"review",
+  intro:"Een systeem verbetert alleen als je ernaar kijkt. Doe je eerste weekreview op het tabblad Review. Plan er een vast moment voor, bijvoorbeeld zondag na het ontbijt."},
+ {id:"s9",fase:"Meesterschap",titel:"Level up",sub:"De Goldilocks-regel",concepts:["goldilocks","genen"],kind:"level",
+  intro:"Gaat een gewoonte vanzelf? Dan dreigt verveling. Maak hem net iets moeilijker: een level hoger. Gaat het juist zwaar, zak dan terug naar de tweeminutenversie.",
+  vragen:[["s9a","Welke gewoonte is saai geworden, en wat is de volgende stap?"]]},
+ {id:"s10",fase:"Meesterschap",titel:"Wie ben je geworden?",sub:"Kwartaal-integriteitscheck",concepts:["review","los"],
+  intro:"Elke drie maanden kijk je naar de grote lijn. Klopt je identiteit nog? Houd je hem los genoeg om te groeien?",
+  vragen:[["s10a","Welke drie kernwaarden sturen je leven en werk?"],["s10b","Leef je daar nu naar? Waar wel, en waar niet?"],["s10c","Wie ben je de afgelopen drie maanden geworden?"],["s10d","Hoe leg je de lat het komende kwartaal net iets hoger?"]]}
+];
+
+/* ============================ WIZARDS ============================ */
+const BUILD = [
+ {t:"Wie wil je zijn?",law:"Identiteit",concept:"identiteit",intro:"Begin bij de persoon, niet bij het resultaat.",fields:[
+   {k:"identity",label:"Welke identiteit versterkt deze gewoonte?",ph:"Ik ben iemand die…",chips:()=>S.profile.identities},
+   {k:"name",label:"Welke gewoonte ga je bouwen?",ph:"bijv. Trainen, Inbox verwerken, Lezen",req:1,chips:["Trainen","Inbox naar nul","10 min lezen","Wekelijkse portfolio-check","Om 23:00 schermen uit","Dagplanning maken","Bewust tijd met Juna en Bo"]}]},
+ {t:"Maak het zichtbaar",law:"Wet 1",concept:"wet1",intro:"Een duidelijk signaal neemt de keuze voor je weg.",
+  tip:"<b>Wisselende diensten?</b> Koppel je gewoonte aan een moment (na het omkleden, na de eerste koffie), niet aan een kloktijd.",fields:[
+   {k:"stack",label:"Habit stack · Na … ga ik deze gewoonte doen",ph:"mijn eerste koffie",chips:["mijn eerste koffie","het omkleden na mijn dienst","het parkeren bij het werk","het tandenpoetsen 's avonds","het openen van mijn laptop","de zondagse boodschappen"]},
+   {k:"where",label:"Waar doe je het?",ph:"aan de keukentafel",chips:["thuis","in de gym","aan de keukentafel","in de auto voor vertrek"]},
+   {k:"cue",label:"Welk zichtbaar signaal zet je klaar?",ph:"sporttas bij de voordeur",chips:["sporttas bij de voordeur","boek op mijn kussen","notitieboek naast de koffie","widget op mijn beginscherm"]}]},
+ {t:"Maak het aantrekkelijk",law:"Wet 2",concept:"wet2",intro:"Koppel het aan iets wat je graag doet, en kies je groep.",fields:[
+   {k:"bundle",label:"Temptation bundle · Tijdens of na deze gewoonte mag ik…",ph:"mijn favoriete podcast luisteren",chips:["mijn favoriete podcast luisteren","een goede espresso","een YouTube-video kijken","muziek op vol"]},
+   {k:"reframe",label:"Van \"ik moet\" naar \"ik mag\"",ph:"Ik mag trainen, want het houdt me sterk voor mijn werk en mijn dochters"},
+   {k:"tribe",label:"In welke groep is dit gedrag normaal?",ph:"de mensen in mijn CrossFit-box",chips:["mijn CrossFit-box","collega's op de OK","beleggers met een systeem","vaders die er echt zijn"]}]},
+ {t:"Maak het makkelijk",law:"Wet 3",concept:"wet3",intro:"Eerst verschijnen. Verbeteren komt later.",fields:[
+   {k:"twoMin",label:"Tweeminutenversie · Ik begin met…",ph:"mijn sportkleding aantrekken",chips:["mijn sportkleding aantrekken","één bladzijde lezen","één mail afhandelen","mijn app openen en saldo bekijken","mijn planner openslaan"]},
+   {k:"friction",label:"Welke frictie haal je weg of bereid je voor?",ph:"kleding de avond ervoor klaarleggen",chips:["kleding de avond ervoor klaarleggen","DCA automatisch laten lopen","mail-app alleen op laptop","telefoon op vliegtuigmodus"]}]},
+ {t:"Maak het bevredigend",law:"Wet 4",concept:"wet4",intro:"Geef jezelf direct een klein moment van winst.",fields:[
+   {k:"reward",label:"Directe beloning na afloop",ph:"afvinken in Atoom",chips:["afvinken in Atoom","eiwitshake","€5 naar mijn beleggingspot","even niks"]},
+   {k:"partner",label:"Wie houdt je scherp?",ph:"trainingsmaatje",chips:["trainingsmaatje","Juna","Bo","collega"]}]},
+ {t:"Je gewoontecontract",law:"Klaar",summary:1}
+];
+const BREAK = [
+ {t:"Welke gewoonte breek je?",law:"Bewustzijn",concept:"lus",intro:"Eerst zien, dan veranderen. Wat is het signaal en wat zoek je er eigenlijk in?",fields:[
+   {k:"name",label:"Welke gewoonte wil je breken?",ph:"bijv. Eindeloos charts checken",req:1,chips:["Eindeloos charts checken","Telefoon in bed","Mail checken in mijn vrije tijd","Snacken na een late dienst","Doorscrollen op YouTube"]},
+   {k:"trigger",label:"Wat is het signaal? Wanneer en waar gebeurt het?",ph:"als ik in bed lig en de telefoon naast me ligt"},
+   {k:"motive",label:"Welk verlangen zit eronder?",ph:"rust na een zware dienst",chips:["rust na een zware dienst","controle over mijn geld","afleiding","beloning","verbinding"]}]},
+ {t:"Maak het onzichtbaar",law:"Inversie 1",concept:"inv1",intro:"Haal het signaal uit je omgeving.",fields:[
+   {k:"invisible",label:"Hoe haal je het signaal weg?",ph:"telefoon laden in de keuken",chips:["telefoon laden in de keuken","apps van mijn beginscherm","meldingen uit","niet in huis halen"]}]},
+ {t:"Maak het onaantrekkelijk",law:"Inversie 2",concept:"inv2",intro:"Zet de kosten in het licht en de winst van vermijden voorop.",fields:[
+   {k:"cost",label:"Wat kost deze gewoonte je echt?",ph:"slaap, focus, rust in mijn hoofd"},
+   {k:"benefit",label:"Wat win je als je hem vermijdt?",ph:"uitgeruster naar mijn dienst"}]},
+ {t:"Maak het moeilijk",law:"Inversie 3",concept:"inv3",intro:"Zet stappen tussen jou en het gedrag.",fields:[
+   {k:"friction",label:"Welke frictie of welk commitment device zet je in?",ph:"app-blokker na 21:00",chips:["app-blokker","uitloggen na gebruik","schermtijdlimiet","alleen op laptop, niet op telefoon"]}]},
+ {t:"Maak het onbevredigend",law:"Inversie 4",concept:"inv4",intro:"Maak terugvallen direct voelbaar.",fields:[
+   {k:"partner",label:"Wie mag je aanspreken?",ph:"trainingsmaatje",chips:["trainingsmaatje","Juna","Bo","collega"]},
+   {k:"contract",label:"Contract · Als ik toch …, dan …",ph:"Als ik toch na 23:00 scrol, dan gaat de telefoon de hele volgende avond in de la"}]},
+ {t:"Kies een vervanging",law:"Zelfde verlangen",concept:"inv2",intro:"Een gewoonte verdwijnt makkelijker als iets anders hetzelfde verlangen bedient.",fields:[
+   {k:"replace",label:"Wat doe je in plaats daarvan?",ph:"10 minuten lezen",chips:["10 minuten lezen","ademhalingsoefening","korte wandeling","één wekelijkse check op zondag"]}]},
+ {t:"Je gewoontecontract",law:"Klaar",summary:1}
+];
+
+const IDENTITY_CHIPS=["Ik ben iemand die nooit twee trainingen mist","Ik ben een rustige, georganiseerde professional","Ik ben een belegger met een systeem, geen gokker","Ik ben een vader die er echt is","Ik ben iemand die zijn slaap beschermt","Ik ben iemand die zijn inbox beheerst"];
+const AREAS=["Training","Slaap","Financiën","Inbox & organisatie","Vaderschap","Werk & ZZP","Mindset"];
+const SCORE_CHIPS=["Wekker uit","Telefoon checken in bed","Koffie","Mail openen","Charts checken","Naar dienst","Trainen","Avondeten","YouTube op de bank","Naar bed"];
+const REVIEW_Q=[["good","Wat ging goed deze week?"],["bad","Waar haperde het systeem, en waarom?"],["gold","Welke gewoonte is te makkelijk (saai) of te moeilijk? (Goldilocks)"],["vote","Waar heb je het vaakst op gestemd? Past dat bij wie je wilt zijn?"],["next","Eén aanpassing van 1% voor volgende week:"]];
+
+/* ============================ STATE ============================ */
+const KEY="atoom.v1";
+function blank(){return {v:1,profile:{name:"",identities:[],areas:[],started:""},answers:{},scorecard:[],habits:[],reviews:[]}}
+function load(){try{const r=localStorage.getItem(KEY);if(r){const o=JSON.parse(r);const b=blank();return Object.assign(b,o,{profile:Object.assign(b.profile,o.profile||{})})}}catch(e){}return blank()}
+let S=load();
+function save(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
+let saveT;function saveSoon(){clearTimeout(saveT);saveT=setTimeout(save,300)}
+
+let SH=null;      // open sheet
+let W=null;       // wizard
+let OB={name:"Jaap",identity:"",areas:[]};
+let RV={};
+let CAT="Alles";
+let CONF=null;    // two-step bevestiging
+
+/* ============================ HELPERS ============================ */
+const $=s=>document.querySelector(s);
+const esc=s=>String(s==null?"":s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const pad=n=>String(n).padStart(2,"0");
+const dkey=(d=new Date())=>d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate());
+const toDate=k=>{const[y,m,d]=k.split("-").map(Number);return new Date(y,m-1,d)};
+const addDays=(k,n)=>{const d=toDate(k);d.setDate(d.getDate()+n);return dkey(d)};
+const diff=(a,b)=>Math.round((toDate(b)-toDate(a))/864e5);
+const today=()=>dkey();
+const uid=()=>Math.random().toString(36).slice(2,9)+Date.now().toString(36).slice(-4);
+const nl=(n,d=2)=>Number(n).toLocaleString("nl-NL",{maximumFractionDigits:d});
+const weekStart=k=>{const d=toDate(k);const w=(d.getDay()+6)%7;d.setDate(d.getDate()-w);return dkey(d)};
+const concept=id=>CONCEPTS.find(c=>c.id===id);
+const active=()=>S.habits.filter(h=>!h.archived);
+const votes=()=>S.habits.reduce((n,h)=>n+Object.keys(h.log||{}).length,0);
+const dayNr=()=>S.profile.started?diff(S.profile.started,today())+1:1;
+const ans=k=>(S.answers[k]||"").trim();
+const ICON_CHECK='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>';
+const CHEV='<svg class="chev" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 6l6 6-6 6"/></svg>';
+
+function streak(h){let k=today();if(!h.log[k])k=addDays(k,-1);let n=0;while(h.log[k]){n++;k=addDays(k,-1)}return n}
+function best(h){const ks=Object.keys(h.log).sort();let b=0,c=0,prev=null;for(const k of ks){c=(prev&&diff(prev,k)===1)?c+1:1;b=Math.max(b,c);prev=k}return b}
+function miss(h){const t=today(),y=addDays(t,-1);if(h.log[t]||h.created>y)return 0;if(h.log[y])return 0;const y2=addDays(t,-2);return (h.created<=y2&&!h.log[y2])?2:1}
+function cueText(h){const d=h.d||{};if(h.type==="break")return d.trigger?"Signaal: "+d.trigger:(d.replace?"In plaats daarvan: "+d.replace:"Vermijden");
+  const parts=[];if(d.stack)parts.push("Na "+d.stack);if(d.twoMin)parts.push("start: "+d.twoMin);return parts.join(" · ")||"Tik voor details"}
+function nextStage(){return STAGES.find(s=>!stageDone(s))}
+function stageDone(s){
+  const qs=(s.vragen||[]).every(([k])=>ans(k));
+  switch(s.kind){
+    case "identity":return qs&&S.profile.identities.length>0;
+    case "scorecard":return qs&&S.scorecard.length>=5;
+    case "build":return S.habits.some(h=>h.type==="build");
+    case "break":return S.habits.some(h=>h.type==="break");
+    case "votes":return votes()>=7;
+    case "review":return S.reviews.length>0;
+    case "level":return qs&&S.habits.some(h=>(h.level||1)>1);
+    default:return qs;
+  }
+}
+function toast(msg){const t=$("#toast");t.textContent=msg;t.hidden=false;clearTimeout(toast._t);toast._t=setTimeout(()=>t.hidden=true,2400)}
+function chipsHTML(list,forId){return list&&list.length?`<div class="chips">${list.map(v=>`<button type="button" class="chip" data-act="chip" data-for="${forId}" data-val="${esc(v)}">${esc(v)}</button>`).join("")}</div>`:""}
+function qBlock(k,q){return `<label class="f">${esc(q)}<textarea id="q-${k}" data-ans="${k}" rows="3" placeholder="Schrijf je antwoord…">${esc(S.answers[k]||"")}</textarea></label>`}
+
+/* ============================ GRAFIEK ============================ */
+function compoundSVG(day){
+  const W=320,H=150,pl=30,pr=40,pt=10,pb=22,iw=W-pl-pr,ih=H-pt-pb,ymax=40;
+  const x=d=>pl+d/365*iw,y=v=>pt+ih-v/ymax*ih;
+  let up="",dn="";for(let d=0;d<=365;d+=5){const dd=Math.min(d,365);up+=(d?"L":"M")+x(dd).toFixed(1)+" "+y(Math.pow(1.01,dd)).toFixed(1);dn+=(d?"L":"M")+x(dd).toFixed(1)+" "+y(Math.pow(.99,dd)).toFixed(1)}
+  up+="L"+x(365).toFixed(1)+" "+y(Math.pow(1.01,365)).toFixed(1);dn+="L"+x(365).toFixed(1)+" "+y(Math.pow(.99,365)).toFixed(1);
+  const area=up+"L"+x(365)+" "+y(0)+"L"+x(0)+" "+y(0)+"Z";
+  const grid=[0,10,20,30].map(v=>`<line x1="${pl}" x2="${pl+iw}" y1="${y(v)}" y2="${y(v)}" stroke="var(--line)" stroke-width="1"/><text x="${pl-6}" y="${y(v)+3}" text-anchor="end">${v}×</text>`).join("");
+  const xt=[0,90,180,270,365].map(d=>`<text x="${x(d)}" y="${H-6}" text-anchor="middle">${d===0?"dag 0":d}</text>`).join("");
+  const dd=Math.min(Math.max(day,0),365),mv=Math.pow(1.01,dd);
+  return `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Groei bij 1% per dag: na 365 dagen 37,8 keer beter; bij 1% slechter 0,03.">
+   ${grid}${xt}
+   <path d="${area}" fill="var(--accent)" fill-opacity=".1"/>
+   <path d="${up}" fill="none" stroke="var(--accent)" stroke-width="2.4" stroke-linejoin="round"/>
+   <path d="${dn}" fill="none" stroke="var(--bad)" stroke-width="1.8" stroke-dasharray="4 3"/>
+   <text x="${x(365)+4}" y="${y(37.8)+3}" style="fill:var(--accent);font-weight:600">37,8×</text>
+   <text x="${x(365)+4}" y="${y(0)-2}" style="fill:var(--bad)">0,03×</text>
+   <line x1="${x(dd)}" x2="${x(dd)}" y1="${pt}" y2="${y(0)}" stroke="var(--spark)" stroke-width="1" stroke-dasharray="2 2"/>
+   <circle cx="${x(dd)}" cy="${y(mv)}" r="5" fill="var(--spark)" stroke="var(--surface)" stroke-width="2"/>
+  </svg>`;
+}
+
+/* ============================ VIEWS ============================ */
+function vOnboarding(){
+  return `
+  <section class="stack" style="padding-top:8px">
+    <span class="eyebrow">Welkom${OB.name?", "+esc(OB.name):""}</span>
+    <h1>Kleine stappen. Een systeem dat blijft.</h1>
+    <p class="muted">Atoom zet de wijsheden uit <em>Atomic Habits</em> om in je dagelijkse systeem. Je leert een principe, past het toe op je eigen leven, en elke dag stem je met kleine acties op wie je wilt worden.</p>
+  </section>
+  <section class="card">
+    <span class="eyebrow">Drie vragen om te beginnen</span>
+    <label class="f">1 · Hoe heet je?<input type="text" id="ob-name" data-ob="name" value="${esc(OB.name)}" autocomplete="given-name"></label>
+    <label class="f">2 · Wie wil je zijn? <span class="hint">Begin met "Ik ben iemand die…". Je kunt er later meer toevoegen.</span>
+      <textarea id="ob-identity" data-ob="identity" rows="2" placeholder="Ik ben iemand die…">${esc(OB.identity)}</textarea></label>
+    ${chipsHTML(IDENTITY_CHIPS,"ob-identity")}
+    <div class="stack-s"><span class="f" style="font-weight:600">3 · Welke gebieden wil je aanpakken?</span>
+      <div class="chips">${AREAS.map(a=>`<button type="button" class="chip ${OB.areas.includes(a)?"on":""}" data-act="area" data-val="${esc(a)}" aria-pressed="${OB.areas.includes(a)}">${esc(a)}</button>`).join("")}</div></div>
+    <button class="btn block" data-act="start">Start mijn reis</button>
+  </section>
+  <section class="card">
+    <div class="sec-head"><h3>Waarom 1% genoeg is</h3><span class="eyebrow">1,01³⁶⁵</span></div>
+    <div class="chart">${compoundSVG(0)}</div>
+    <p class="small muted">Elke dag 1% beter is na een jaar 37,8 keer beter. Elke dag 1% slechter laat je zakken naar 0,03. Het verschil zie je pas later.</p>
+  </section>
+  <section class="stack">
+    <span class="eyebrow">Hoe Atoom werkt</span>
+    <div class="card"><h3>Leer</h3><p class="small muted">18 wijsheden uit het boek, in gewone taal, met een vraag aan jou bij elke wijsheid.</p></div>
+    <div class="card"><h3>Ontwerp</h3><p class="small muted">Bouw gewoontes met de vier wetten en breek slechte gewoontes met de inversies.</p></div>
+    <div class="card"><h3>Stem en review</h3><p class="small muted">Elke afvinking is een stem voor je identiteit. Elke week stel je je systeem 1% bij.</p></div>
+  </section>`;
+}
+
+function greeting(){const h=new Date().getHours();return h<6?"Goedenacht":h<12?"Goedemorgen":h<18?"Goedemiddag":"Goedenavond"}
+
+function vVandaag(){
+  if(!S.profile.started)return vOnboarding();
+  const t=today(),hs=active(),done=hs.filter(h=>h.log[t]).length;
+  const ids=S.profile.identities;
+  const ns=nextStage();
+  const dn=dayNr();
+  const c=CONCEPTS[(diff("2024-01-01",t)%CONCEPTS.length+CONCEPTS.length)%CONCEPTS.length];
+  const missers=hs.filter(h=>miss(h));
+  return `
+  <section class="stack-s" style="padding-top:4px">
+    <span class="eyebrow">${greeting()}${S.profile.name?", "+esc(S.profile.name):""}</span>
+    ${ids.length?`<p class="quote">${esc(ids[0])}</p><p class="small muted">Elke afvinking vandaag is een stem voor deze persoon.</p>`:`<p class="quote">Wie wil je zijn?</p><button class="link" data-act="stage" data-id="s3">Schrijf je identiteit →</button>`}
+  </section>
+  <section class="stats">
+    <div class="stat spark"><b id="votes">${votes()}</b><span>stemmen voor je identiteit</span></div>
+    <div class="stat"><b>${done}/${hs.length}</b><span>vandaag gedaan</span></div>
+    <div class="stat"><b>${dn}</b><span>dag van je reis</span></div>
+  </section>
+  ${missers.length?`<section class="card alert"><h3>Nooit twee keer missen</h3><p class="small">${missers.map(h=>`<b>${esc(h.name)}</b>`).join(", ")} ${missers.length>1?"liepen":"liep"} gisteren niet. Eén keer missen is een ongeluk. Vandaag is de dag die telt, ook als je alleen de tweeminutenversie doet.</p></section>`:""}
+  <section class="stack">
+    <div class="sec-head"><h2>Vandaag stemmen</h2>${hs.length?`<button class="link small" data-act="newbuild">+ Nieuw</button>`:""}</div>
+    ${hs.length?`<div class="habits">${hs.map(habitRow).join("")}</div>`:
+    `<div class="card soft"><h3>Nog geen gewoontes</h3><p class="small">Ontwerp je eerste gewoonte met de vier wetten. Het duurt vijf minuten en je eindigt met een contract met jezelf.</p><button class="btn" data-act="newbuild">Ontwerp mijn eerste gewoonte</button></div>`}
+  </section>
+  ${ns?`<section class="card"><span class="eyebrow">Volgende stap op je reis · ${esc(ns.fase)}</span><h3>${esc(ns.titel)}</h3><p class="small muted">${esc(ns.intro)}</p><button class="btn quiet" data-act="stage" data-id="${ns.id}">Verder met deze stap</button></section>`:
+  `<section class="card soft"><span class="eyebrow">Reis voltooid</span><h3>Je hebt alle stappen doorlopen</h3><p class="small">Blijf stemmen, doe je weekreview en herhaal de kwartaalcheck.</p></section>`}
+  <section class="card">
+    <span class="eyebrow">Wijsheid van vandaag · ${esc(c.cat)}</span>
+    <h3>${esc(c.titel)}</h3>
+    <p>${esc(c.kern)}</p>
+    <p class="small muted"><b>Vraag aan jou:</b> ${esc(c.vraag)}</p>
+    <button class="link" data-act="concept" data-id="${c.id}">Lees en beantwoord →</button>
+  </section>
+  <section class="card">
+    <div class="sec-head"><h3>Jouw rentecurve</h3><span class="eyebrow">dag ${dn}</span></div>
+    <div class="chart">${compoundSVG(dn)}</div>
+    <p class="small muted">Op dag ${dn} staat 1% per dag op <b style="color:var(--spark)">${nl(Math.pow(1.01,Math.min(dn,365)))}×</b>. Het meeste rendement zit in het tweede halfjaar. Blijf stemmen.</p>
+  </section>`;
+}
+
+function habitRow(h){
+  const t=today(),done=!!h.log[t],st=streak(h);
+  let dots="";for(let i=6;i>=0;i--){const k=addDays(t,-i);dots+=`<i class="${h.log[k]?"on":""} ${i===0?"now":""}"></i>`}
+  return `<div class="hrow ${done?"done":""} ${h.type==="break"?"break":""}">
+    <button class="check" data-act="toggle" data-id="${h.id}" aria-pressed="${done}" aria-label="${esc(h.name)} ${h.type==="break"?"vandaag vermeden":"vandaag gedaan"}">${ICON_CHECK}</button>
+    <button class="hbody" data-act="habit" data-id="${h.id}">
+      <span class="hname">${esc(h.name)}${(h.level||1)>1?` <span class="badge acc">lvl ${h.level}</span>`:""}</span>
+      <span class="hmeta">${h.type==="break"?"Vermijden · ":""}${esc(cueText(h))}</span>
+      <span class="dots" aria-hidden="true">${dots}</span>
+    </button>
+    <span class="streak">${st}<small>reeks</small></span>
+  </div>`;
+}
+
+function vReis(){
+  const doneN=STAGES.filter(stageDone).length,ns=nextStage();
+  const fases=[...new Set(STAGES.map(s=>s.fase))];
+  return `
+  <section class="stack-s" style="padding-top:4px">
+    <span class="eyebrow">Jouw reis door het boek</span>
+    <h1>Van inzicht naar systeem</h1>
+    <p class="muted">Tien stappen in zes fases. Elke stap legt een wijsheid uit en stelt je vragen. Je antwoorden worden je systeem.</p>
+  </section>
+  <section class="stack-s">
+    <div class="sec-head"><span class="small"><b>${doneN}</b> van ${STAGES.length} stappen klaar</span><span class="eyebrow">${Math.round(doneN/STAGES.length*100)}%</span></div>
+    <div class="progress"><i style="width:${doneN/STAGES.length*100}%"></i></div>
+  </section>
+  ${fases.map(f=>`<section class="phase"><span class="eyebrow">${esc(f)}</span>
+    ${STAGES.filter(s=>s.fase===f).map(s=>{const d=stageDone(s),n=ns&&ns.id===s.id,i=STAGES.indexOf(s)+1;
+      return `<button class="stage ${d?"done":""} ${n?"next":""}" data-act="stage" data-id="${s.id}">
+        <span class="num">${d?ICON_CHECK.replace('stroke-width="3"','stroke-width="3" width="18" height="18"'):i}</span>
+        <span><span class="t">${esc(s.titel)}</span><br><span class="s">${n?"Nu aan de beurt · ":""}${esc(s.sub)}</span></span>${CHEV}</button>`}).join("")}
+  </section>`).join("")}`;
+}
+
+function vWijsheid(){
+  const list=CONCEPTS.filter(c=>CAT==="Alles"||c.cat===CAT);
+  return `
+  <section class="stack-s" style="padding-top:4px">
+    <span class="eyebrow">Bibliotheek</span>
+    <h1>De wijsheden</h1>
+    <p class="muted">De kern van <em>Atomic Habits</em> van James Clear, samengevat in eigen woorden en vertaald naar jouw dag.</p>
+  </section>
+  <div class="chips" role="tablist">${CATS.map(c=>`<button class="chip cat ${CAT===c?"on":""}" data-act="cat" data-val="${esc(c)}" aria-pressed="${CAT===c}">${esc(c)}</button>`).join("")}</div>
+  <section class="stack-s">${list.map(c=>`<button class="concept" data-act="concept" data-id="${c.id}">
+    <span class="eyebrow">${esc(c.cat)}${ans("c_"+c.id)?" · beantwoord":""}</span><h3>${esc(c.titel)}</h3><span class="kern">${esc(c.kern)}</span></button>`).join("")}</section>`;
+}
+
+function vGewoontes(){
+  const hs=active(),b=hs.filter(h=>h.type==="build"),x=hs.filter(h=>h.type==="break"),arch=S.habits.filter(h=>h.archived);
+  return `
+  <section class="stack-s" style="padding-top:4px">
+    <span class="eyebrow">Ontwerpen</span>
+    <h1>Je gewoontes</h1>
+    <p class="muted">Bouw met de vier wetten. Breek met de vier inversies. Begin met één.</p>
+  </section>
+  <div class="row"><button class="btn" data-act="newbuild">+ Bouw gewoonte</button><button class="btn ghost" data-act="newbreak">− Breek gewoonte</button></div>
+  <section class="stack"><h2>Bouwen</h2>${b.length?`<div class="habits">${b.map(habitRow).join("")}</div>`:`<p class="muted small">Nog niets. Begin met iets dat in twee minuten kan.</p>`}</section>
+  <section class="stack"><h2>Breken</h2>${x.length?`<div class="habits">${x.map(habitRow).join("")}</div><p class="hint">Afvinken betekent hier: vandaag vermeden.</p>`:`<p class="muted small">Nog niets. Welke gewoonte kost je het meest?</p>`}</section>
+  <section class="card"><span class="eyebrow">Identiteit</span>
+    ${S.profile.identities.length?S.profile.identities.map(i=>`<p class="quote" style="font-size:16px">${esc(i)}</p>`).join(""):`<p class="muted small">Nog geen identiteit.</p>`}
+    <button class="link" data-act="stage" data-id="s3">Bewerk identiteit →</button></section>
+  ${arch.length?`<details class="card"><summary>Gearchiveerd (${arch.length})</summary><div class="stack-s">${arch.map(h=>`<button class="link" data-act="habit" data-id="${h.id}">${esc(h.name)}</button>`).join("")}</div></details>`:""}`;
+}
+
+function weekStats(){
+  const t=today(),ws=weekStart(t);
+  const days=[];for(let i=0;i<7;i++)days.push(addDays(ws,i));
+  const hs=active();
+  return {ws,days,rows:hs.map(h=>({h,n:days.filter(d=>h.log[d]).length,poss:days.filter(d=>d<=t&&d>=h.created).length}))};
+}
+
+function vReview(){
+  const {ws,rows}=weekStats();
+  const thisWeek=S.reviews.find(r=>r.week===ws);
+  const backup=JSON.stringify(S);
+  return `
+  <section class="stack-s" style="padding-top:4px">
+    <span class="eyebrow">Week van ${toDate(ws).toLocaleDateString("nl-NL",{day:"numeric",month:"long"})}</span>
+    <h1>Weekreview</h1>
+    <p class="muted">Gewoontes maken je automatisch. Reflectie houdt je wakker. Vijf vragen, vijf minuten.</p>
+  </section>
+  <section class="card"><h3>Deze week</h3>
+    ${rows.length?rows.map(r=>`<div class="stack-s"><div class="sec-head"><span class="small"><b>${esc(r.h.name)}</b></span><span class="eyebrow">${r.n}/${Math.max(r.poss,r.n)}</span></div><div class="progress"><i style="width:${r.poss?Math.min(100,r.n/r.poss*100):0}%;${r.h.type==="break"?"background:var(--good)":""}"></i></div></div>`).join(""):`<p class="small muted">Nog geen gewoontes om te meten.</p>`}
+  </section>
+  ${thisWeek?`<section class="card soft"><span class="eyebrow">Review van deze week is gedaan</span>${REVIEW_Q.map(([k,q])=>thisWeek.a[k]?`<div class="stack-s"><span class="small muted">${esc(q)}</span><p>${esc(thisWeek.a[k])}</p></div>`:"").join("")}</section>`:
+  `<form class="card" data-form="review"><span class="eyebrow">Jouw review</span>
+    ${REVIEW_Q.map(([k,q])=>`<label class="f">${esc(q)}<textarea id="rv-${k}" data-rv="${k}" rows="2">${esc(RV[k]||"")}</textarea></label>`).join("")}
+    <button class="btn block" type="submit">Review opslaan</button></form>`}
+  ${S.reviews.filter(r=>r.week!==ws).length?`<section class="stack"><h2>Eerdere reviews</h2>${S.reviews.filter(r=>r.week!==ws).map(r=>`<details class="card"><summary>Week van ${toDate(r.week).toLocaleDateString("nl-NL",{day:"numeric",month:"short",year:"numeric"})}</summary>${REVIEW_Q.map(([k,q])=>r.a[k]?`<div class="stack-s"><span class="small muted">${esc(q)}</span><p>${esc(r.a[k])}</p></div>`:"").join("")}</details>`).join("")}</section>`:""}
+  <section class="card"><span class="eyebrow">Je gegevens</span>
+    <p class="small muted">Alles staat alleen op dit toestel. Maak af en toe een back-up: kopieer de tekst en bewaar hem in je notities of mail hem naar jezelf.</p>
+    <textarea id="backup" rows="3" readonly>${esc(backup)}</textarea>
+    <button class="btn quiet" data-act="copy">Kopieer back-up</button>
+    <label class="f">Back-up terugzetten<textarea id="imp" rows="2" placeholder="Plak hier je back-up"></textarea></label>
+    <button class="btn quiet" data-act="import">Zet terug</button>
+    ${CONF==="reset"?`<div class="row"><button class="btn danger" data-act="reset2">Ja, wis alles</button><button class="btn ghost" data-act="unconf">Annuleer</button></div>`:`<button class="link" style="color:var(--bad)" data-act="reset">Alles wissen en opnieuw beginnen</button>`}
+  </section>
+  <p class="hint">Gebaseerd op de ideeën uit <em>Atomic Habits</em> van James Clear. Alle teksten zijn eigen samenvattingen.</p>`;
+}
+
+const VIEWS={vandaag:vVandaag,reis:vReis,gewoontes:vGewoontes,wijsheid:vWijsheid,review:vReview};
+const route=()=>{const h=location.hash.slice(1);return VIEWS[h]?h:"vandaag"};
+
+function render(){
+  const r=route();
+  $("#main").innerHTML=VIEWS[r]();
+  document.querySelectorAll(".tabs a").forEach(a=>a.classList.toggle("on",a.dataset.tab===r));
+  $("#hdate").textContent=new Date().toLocaleDateString("nl-NL",{weekday:"short",day:"numeric",month:"short"});
+}
+
+/* ============================ SHEETS ============================ */
+function openSheet(o){SH=o;renderSheet();$("#sheet").hidden=false;$("#sheet").scrollTop=0;document.body.style.overflow="hidden"}
+function closeSheet(){SH=null;W=null;CONF=null;$("#sheet").hidden=true;document.body.style.overflow="";render()}
+function renderSheet(){
+  if(!SH)return;
+  const top=`<div class="sheet-top">${SH.kind==="wizard"?stepsBar():`<span class="eyebrow">${esc(SH.label||"")}</span>`}<button class="close" data-act="close" aria-label="Sluiten">×</button></div>`;
+  let body="";
+  if(SH.kind==="concept")body=sConcept();
+  else if(SH.kind==="stage")body=sStage();
+  else if(SH.kind==="wizard")body=sWizard();
+  else if(SH.kind==="habit")body=sHabit();
+  $("#sheet").innerHTML=`<div class="wrap">${top}${body}</div>`;
+}
+
+function sConcept(){
+  const c=concept(SH.id);
+  const law=/^wet/.test(c.id)?"newbuild":/^inv/.test(c.id)?"newbreak":"";
+  return `<span class="eyebrow">${esc(c.cat)}</span><h1>${esc(c.titel)}</h1>
+   <p class="quote">${esc(c.kern)}</p>
+   <p>${esc(c.uitleg)}</p>
+   ${c.id==="procent"?`<div class="card chart">${compoundSVG(dayNr())}</div>`:""}
+   <section class="card"><span class="eyebrow">Zo pas je het toe</span><ul class="list">${c.toepassen.map(t=>`<li>${esc(t)}</li>`).join("")}</ul></section>
+   <section class="card soft"><span class="eyebrow">Vraag aan jou</span>${qBlock("c_"+c.id,c.vraag)}<span class="hint">Je antwoord wordt automatisch bewaard.</span></section>
+   ${law?`<button class="btn block" data-act="${law}">${law==="newbuild"?"Ontwerp een gewoonte met deze wet":"Breek een gewoonte met deze inversie"}</button>`:""}`;
+}
+
+function sStage(){
+  const s=STAGES.find(x=>x.id===SH.id),d=stageDone(s),i=STAGES.indexOf(s)+1;
+  let special="";
+  if(s.kind==="identity"){
+    special=`<section class="card"><span class="eyebrow">Ik ben iemand die…</span>
+      ${S.profile.identities.map((t,j)=>`<div class="sc" style="grid-template-columns:1fr auto"><span>${esc(t)}</span><button class="x" data-act="iddel" data-i="${j}" aria-label="Verwijder">×</button></div>`).join("")||`<p class="small muted">Nog geen identiteit.</p>`}
+      <form class="stack-s" data-form="id"><input type="text" id="id-new" placeholder="Ik ben iemand die…"><button class="btn quiet" type="submit">Voeg toe</button></form>
+      ${chipsHTML(IDENTITY_CHIPS.filter(c=>!S.profile.identities.includes(c)),"id-new")}
+      <span class="hint">Tip: beschrijf eigenschappen in plaats van rollen. Dat groeit mee.</span></section>`;
+  }
+  if(s.kind==="scorecard"){
+    const sym={p:"+",e:"=",n:"−"};
+    special=`<section class="card"><div class="sec-head"><span class="eyebrow">Mijn dag</span><span class="eyebrow">${S.scorecard.length}/5+</span></div>
+      ${S.scorecard.map((it,j)=>`<div class="sc"><span>${esc(it.t)}</span><span class="rate">${["p","e","n"].map(r=>`<button class="${r} ${it.r===r?"on":""}" data-act="rate" data-i="${j}" data-r="${r}" aria-label="${sym[r]}">${sym[r]}</button>`).join("")}</span><button class="x" data-act="scdel" data-i="${j}" aria-label="Verwijder">×</button></div>`).join("")}
+      <form class="stack-s" data-form="score"><input type="text" id="sc-new" placeholder="bijv. Telefoon checken in bed"><button class="btn quiet" type="submit">Voeg toe</button></form>
+      <div class="chips">${SCORE_CHIPS.filter(c=>!S.scorecard.some(x=>x.t===c)).map(c=>`<button class="chip" data-act="scadd" data-val="${esc(c)}">+ ${esc(c)}</button>`).join("")}</div>
+      <span class="hint">Twijfel je bij een +, = of −? Vraag: helpt dit me de persoon te worden die ik wil zijn?</span></section>`;
+  }
+  if(s.kind==="build"||s.kind==="break"){
+    const list=S.habits.filter(h=>h.type===s.kind);
+    special=`${list.length?`<div class="habits">${list.map(habitRow).join("")}</div>`:""}<button class="btn block" data-act="${s.kind==="build"?"newbuild":"newbreak"}">${s.kind==="build"?"Ontwerp een gewoonte":"Breek een gewoonte"}</button>`;
+  }
+  if(s.kind==="votes"){const v=Math.min(votes(),7);special=`<section class="card"><div class="sec-head"><h3>${v} van 7 stemmen</h3></div><div class="progress"><i style="width:${v/7*100}%;background:var(--spark)"></i></div><button class="btn quiet" data-act="goto" data-val="vandaag">Naar Vandaag</button></section>`}
+  if(s.kind==="review")special=`<button class="btn block" data-act="goto" data-val="review">Naar weekreview</button>`;
+  if(s.kind==="level"){const hs=active();special=hs.length?`<section class="stack-s"><span class="eyebrow">Open een gewoonte om hem een level hoger te zetten</span><div class="habits">${hs.map(habitRow).join("")}</div></section>`:`<p class="small muted">Bouw eerst een gewoonte.</p>`}
+  return `<span class="eyebrow">Stap ${i} · ${esc(s.fase)}</span><h1>${esc(s.titel)}</h1>
+   <p>${esc(s.intro)}</p>
+   <section class="stack-s">${s.concepts.map(id=>{const c=concept(id);return `<button class="concept" data-act="concept" data-id="${id}"><span class="eyebrow">Wijsheid</span><h3>${esc(c.titel)}</h3><span class="kern">${esc(c.kern)}</span></button>`}).join("")}</section>
+   ${special}
+   ${(s.vragen||[]).length?`<section class="card"><span class="eyebrow">Vragen aan jou</span>${s.vragen.map(([k,q])=>qBlock(k,q)).join("")}<span class="hint">Antwoorden worden automatisch bewaard.</span></section>`:""}
+   <div class="row">${d?`<span class="badge good">Stap afgerond</span>`:`<span class="badge">Nog niet afgerond</span>`}</div>
+   <button class="btn ghost block" data-act="close">Terug</button>`;
+}
+
+function stepsBar(){const def=W.type==="build"?BUILD:BREAK;return `<div class="steps">${def.map((_,i)=>`<i class="${i<=W.step?"on":""}"></i>`).join("")}</div>`}
+function contractHTML(type,d,name){
+  name=name?name.charAt(0).toLowerCase()+name.slice(1):name;
+  const b=v=>`<b>${esc(v)}</b>`;
+  if(type==="build"){
+    const p=[];
+    if(d.identity)p.push(`${b(d.identity)}.`);
+    p.push(`Na ${b(d.stack||"…")} ga ik ${b(name||"…")}${d.where?` doen, ${b(d.where)}`:""}.`);
+    if(d.twoMin)p.push(`Ik begin met ${b(d.twoMin)}.`);
+    if(d.cue)p.push(`Mijn signaal: ${b(d.cue)}.`);
+    if(d.friction)p.push(`Ik maak het makkelijk: ${b(d.friction)}.`);
+    if(d.bundle)p.push(`Tijdens of na afloop mag ik ${b(d.bundle)}.`);
+    if(d.reframe)p.push(`${b(d.reframe)}.`);
+    if(d.tribe)p.push(`Dit is normaal bij ${b(d.tribe)}.`);
+    if(d.reward)p.push(`Mijn directe beloning: ${b(d.reward)}.`);
+    if(d.partner)p.push(`${b(d.partner)} houdt me scherp.`);
+    return p.join(" ");
+  }
+  const p=[`Ik stop met ${b(name||"…")}.`];
+  if(d.trigger)p.push(`Het signaal is ${b(d.trigger)}.`);
+  if(d.motive)p.push(`Eigenlijk zoek ik ${b(d.motive)}.`);
+  if(d.invisible)p.push(`Ik maak het onzichtbaar: ${b(d.invisible)}.`);
+  if(d.cost)p.push(`Het kost me ${b(d.cost)}.`);
+  if(d.benefit)p.push(`Als ik het vermijd, win ik ${b(d.benefit)}.`);
+  if(d.friction)p.push(`Ik maak het moeilijk: ${b(d.friction)}.`);
+  if(d.replace)p.push(`In plaats daarvan ga ik ${b(d.replace)}.`);
+  if(d.contract)p.push(`${b(d.contract)}.`);
+  if(d.partner)p.push(`${b(d.partner)} mag me aanspreken.`);
+  return p.join(" ");
+}
+function sWizard(){
+  const def=W.type==="build"?BUILD:BREAK,st=def[W.step],last=W.step===def.length-1;
+  let body;
+  if(st.summary){
+    body=`<p class="muted">Lees het hardop. Dit is je afspraak met jezelf.</p><div class="contract">${contractHTML(W.type,W.data,W.data.name)}</div>
+      <p class="hint">${W.type==="build"?"Vink de gewoonte elke dag af op Vandaag. Elke vink is een stem.":"Vink elke dag af dat je de gewoonte hebt vermeden."}</p>`;
+  }else{
+    body=(st.tip?`<div class="tip">${st.tip}</div>`:"")+st.fields.map(f=>{const id="wf-"+f.k,ch=typeof f.chips==="function"?f.chips():f.chips;
+      return `<div class="stack-s"><label class="f" for="${id}">${esc(f.label)}</label><input type="text" id="${id}" data-wf="${f.k}" value="${esc(W.data[f.k]||"")}" placeholder="${esc(f.ph||"")}">${chipsHTML(ch,id)}</div>`}).join("");
+  }
+  return `<span class="eyebrow">${esc(st.law)} · stap ${W.step+1} van ${def.length}</span><h1>${esc(st.t)}</h1>
+   ${st.intro?`<p class="muted">${esc(st.intro)}</p>`:""}
+   ${st.concept&&!st.summary?`<button class="link small" data-act="peek" data-id="${st.concept}">Wat zegt het boek hierover?</button>`:""}
+   ${W.peek&&!st.summary?`<div class="card soft small"><b>${esc(concept(W.peek).titel)}</b><p>${esc(concept(W.peek).uitleg)}</p></div>`:""}
+   <div class="stack">${body}</div>
+   <div class="foot">${W.step>0?`<button class="btn ghost" data-act="wback">Terug</button>`:""}${last?`<button class="btn" data-act="wsave">${W.editId?"Wijzigingen opslaan":"Teken en start"}</button>`:`<button class="btn" data-act="wnext">Volgende</button>`}</div>`;
+}
+
+function sHabit(){
+  const h=S.habits.find(x=>x.id===SH.id);if(!h)return "<p>Niet gevonden.</p>";
+  const t=today(),st=streak(h),bs=best(h),tot=Object.keys(h.log).length;
+  const start=addDays(weekStart(t),-28);let cells="";
+  for(let i=0;i<35;i++){const k=addDays(start,i);cells+=`<i class="${k>t?"fut":h.log[k]?"on":""}" title="${k}"></i>`}
+  const lv=h.level||1,levels=h.levels||[];
+  return `<span class="eyebrow">${h.type==="break"?"Breken":"Bouwen"}${h.archived?" · gearchiveerd":""}</span>
+   <h1>${esc(h.name)}</h1>
+   ${h.d&&h.d.identity?`<p class="quote" style="font-size:17px">${esc(h.d.identity)}</p>`:""}
+   <section class="stats"><div class="stat spark"><b>${st}</b><span>huidige reeks</span></div><div class="stat"><b>${bs}</b><span>langste reeks</span></div><div class="stat"><b>${tot}</b><span>stemmen totaal</span></div></section>
+   <section class="card"><div class="sec-head"><h3>Laatste 5 weken</h3><span class="eyebrow">ma → zo</span></div><div class="cal ${h.type==="break"?"break":""}">${cells}</div></section>
+   <section class="stack-s"><span class="eyebrow">Contract</span><div class="contract">${contractHTML(h.type,h.d||{},h.name)}</div></section>
+   ${h.type==="build"?`<section class="card"><div class="sec-head"><h3>Goldilocks · level ${lv}</h3><span class="badge acc">lvl ${lv}</span></div>
+     <p class="small muted">Gaat het vanzelf? Maak het net iets moeilijker. Te zwaar? Terug naar de tweeminutenversie.</p>
+     ${levels.length?`<ul class="list small">${levels.map(l=>`<li>Level ${l.lv}: ${esc(l.v)} <span class="muted">(${toDate(l.at).toLocaleDateString("nl-NL",{day:"numeric",month:"short"})})</span></li>`).join("")}</ul>`:""}
+     <form class="stack-s" data-form="level" data-id="${h.id}"><input type="text" id="lv-new" placeholder="Volgende versie, bijv. 20 minuten in plaats van 10"><button class="btn quiet" type="submit">Level up</button></form></section>`:""}
+   <div class="row"><button class="btn quiet" data-act="edit" data-id="${h.id}">Bewerk contract</button>
+   <button class="btn ghost" data-act="archive" data-id="${h.id}">${h.archived?"Zet terug":"Archiveer"}</button></div>
+   ${CONF==="del"?`<div class="row"><button class="btn danger" data-act="del2" data-id="${h.id}">Ja, verwijder definitief</button><button class="btn ghost" data-act="unconf">Annuleer</button></div>`:`<button class="link" style="color:var(--bad)" data-act="del">Verwijder gewoonte</button>`}`;
+}
+
+/* ============================ ACTIES ============================ */
+function startWizard(type,editId){
+  const h=editId&&S.habits.find(x=>x.id===editId);
+  W={type,step:0,editId:editId||null,peek:null,data:h?Object.assign({name:h.name},h.d||{}):{identity:S.profile.identities[0]||""}};
+  openSheet({kind:"wizard"});
+}
+const A={
+  close:closeSheet,
+  goto:el=>{const v=el.dataset.val;closeSheet();location.hash="#"+v},
+  chip:el=>{const inp=document.getElementById(el.dataset.for);if(!inp)return;inp.value=el.dataset.val;inp.dispatchEvent(new Event("input",{bubbles:true}));inp.focus()},
+  area:el=>{const v=el.dataset.val,i=OB.areas.indexOf(v);i<0?OB.areas.push(v):OB.areas.splice(i,1);el.classList.toggle("on");el.setAttribute("aria-pressed",i<0)},
+  start:()=>{
+    S.profile.name=(OB.name||"").trim();S.profile.areas=OB.areas.slice();
+    const id=(OB.identity||"").trim();if(id&&!S.profile.identities.includes(id))S.profile.identities.push(id);
+    S.profile.started=today();save();render();window.scrollTo(0,0);toast("Je reis is begonnen. Dag 1.");
+  },
+  toggle:(el,id)=>{
+    const h=S.habits.find(x=>x.id===id),t=today();if(!h)return;
+    if(h.log[t])delete h.log[t];else{h.log[t]=1;toast(S.profile.identities[0]?"Stem uitgebracht: "+S.profile.identities[0]:"Stem uitgebracht")}
+    save();if(SH)renderSheet();render();
+    const v=$("#votes");if(v&&h.log[t])v.classList.add("pop");
+  },
+  habit:(el,id)=>{CONF=null;openSheet({kind:"habit",id,label:"Gewoonte"})},
+  concept:(el,id)=>openSheet({kind:"concept",id,label:"Wijsheid"}),
+  stage:(el,id)=>openSheet({kind:"stage",id,label:"Reis"}),
+  cat:el=>{CAT=el.dataset.val;render()},
+  newbuild:()=>startWizard("build"),
+  newbreak:()=>startWizard("break"),
+  edit:(el,id)=>{const h=S.habits.find(x=>x.id===id);startWizard(h.type,id)},
+  peek:(el,id)=>{W.peek=W.peek===id?null:id;renderSheet()},
+  wnext:()=>{const def=W.type==="build"?BUILD:BREAK,st=def[W.step];
+    const miss=(st.fields||[]).find(f=>f.req&&!(W.data[f.k]||"").trim());
+    if(miss){toast("Vul eerst in: "+miss.label.split("?")[0]+"?");document.getElementById("wf-"+miss.k)?.focus();return}
+    W.step++;W.peek=null;renderSheet();$("#sheet").scrollTop=0},
+  wback:()=>{W.step--;W.peek=null;renderSheet();$("#sheet").scrollTop=0},
+  wsave:()=>{
+    const d=Object.assign({},W.data),name=(d.name||"").trim();delete d.name;
+    Object.keys(d).forEach(k=>{d[k]=(d[k]||"").trim();if(!d[k])delete d[k]});
+    if(W.editId){const h=S.habits.find(x=>x.id===W.editId);h.name=name;h.d=d}
+    else S.habits.push({id:uid(),type:W.type,name,d,created:today(),log:{},level:1,levels:[]});
+    if(d.identity&&W.type==="build"&&!S.profile.identities.includes(d.identity))S.profile.identities.push(d.identity);
+    save();const ed=W.editId;closeSheet();if(!ed)location.hash="#vandaag";
+    toast(ed?"Contract bijgewerkt":"Getekend. Je eerste stem kan vandaag al.");
+  },
+  archive:(el,id)=>{const h=S.habits.find(x=>x.id===id);h.archived=!h.archived;save();renderSheet();toast(h.archived?"Gearchiveerd":"Teruggezet")},
+  del:()=>{CONF="del";renderSheet()},
+  del2:(el,id)=>{S.habits=S.habits.filter(x=>x.id!==id);save();closeSheet();toast("Verwijderd")},
+  unconf:()=>{CONF=null;SH?renderSheet():render()},
+  iddel:el=>{S.profile.identities.splice(+el.dataset.i,1);save();renderSheet()},
+  rate:el=>{const it=S.scorecard[+el.dataset.i];it.r=it.r===el.dataset.r?"":el.dataset.r;save();renderSheet()},
+  scdel:el=>{S.scorecard.splice(+el.dataset.i,1);save();renderSheet()},
+  scadd:el=>{S.scorecard.push({t:el.dataset.val,r:""});save();renderSheet()},
+  copy:()=>{const ta=$("#backup");const done=()=>toast("Back-up gekopieerd");
+    try{navigator.clipboard.writeText(ta.value).then(done,()=>{ta.select();toast("Tekst geselecteerd, kopieer handmatig")})}catch(e){ta.select();toast("Tekst geselecteerd, kopieer handmatig")}},
+  import:()=>{try{const o=JSON.parse($("#imp").value);if(!o||!Array.isArray(o.habits))throw 0;const b=blank();S=Object.assign(b,o,{profile:Object.assign(b.profile,o.profile||{})});save();render();toast("Back-up teruggezet")}catch(e){toast("Dit lijkt geen geldige back-up. Plak de volledige tekst.")}},
+  reset:()=>{CONF="reset";render()},
+  reset2:()=>{S=blank();CONF=null;RV={};save();location.hash="#vandaag";render();toast("Alles gewist")}
+};
+const FORMS={
+  id:f=>{const i=$("#id-new"),v=i.value.trim();if(!v)return;S.profile.identities.push(v);save();renderSheet()},
+  score:f=>{const i=$("#sc-new"),v=i.value.trim();if(!v)return;S.scorecard.push({t:v,r:""});save();renderSheet();$("#sc-new")?.focus()},
+  level:f=>{const h=S.habits.find(x=>x.id===f.dataset.id),v=$("#lv-new").value.trim();if(!v){toast("Beschrijf eerst de volgende versie");return}
+    h.level=(h.level||1)+1;(h.levels=h.levels||[]).push({lv:h.level,v,at:today()});save();renderSheet();toast("Level "+h.level+". Net buiten je comfortzone.")},
+  review:f=>{const a={};REVIEW_Q.forEach(([k])=>{a[k]=(RV[k]||"").trim()});if(!Object.values(a).some(Boolean)){toast("Beantwoord minstens één vraag");return}
+    const {ws,rows}=weekStats();S.reviews.unshift({week:ws,date:today(),a,stats:rows.map(r=>({n:r.h.name,v:r.n}))});RV={};save();render();window.scrollTo(0,0);toast("Review opgeslagen. Volgende week weer.")}
+};
+
+document.addEventListener("click",e=>{const el=e.target.closest("[data-act]");if(!el)return;const fn=A[el.dataset.act];if(fn){e.preventDefault();fn(el,el.dataset.id,e)}});
+document.addEventListener("submit",e=>{e.preventDefault();const f=FORMS[e.target.dataset.form];if(f)f(e.target)});
+document.addEventListener("input",e=>{const t=e.target,ds=t.dataset;
+  if(ds.ans!==undefined){S.answers[ds.ans]=t.value;saveSoon()}
+  if(ds.wf!==undefined&&W){W.data[ds.wf]=t.value}
+  if(ds.ob!==undefined){OB[ds.ob]=t.value}
+  if(ds.rv!==undefined){RV[ds.rv]=t.value}
+});
+document.addEventListener("keydown",e=>{if(e.key==="Escape"&&SH)closeSheet()});
+window.addEventListener("hashchange",()=>{if(SH)closeSheet();else render();window.scrollTo(0,0)});
+document.addEventListener("visibilitychange",()=>{if(!document.hidden&&!SH)render()});
+render();
+})();
+</script>
+<script>if("serviceWorker" in navigator){addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}))}</script>
+</body>
+</html>

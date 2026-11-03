@@ -1,0 +1,449 @@
+<title>Reeds Kennisbank</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: één kolom kaartenbak — elke video is een indexkaart met een gekleurde categorietab; vaste tabbalk onderin. */
+:root{
+  --bg:#ECEFF2; --card:#FFFFFF; --ink:#141D27; --muted:#5A6774; --line:#D3DAE1; --accent:#2350E6; --accent-ink:#FFFFFF; --soft:#E1E7FB;
+  --ok:#1C8A5A; --warn:#B7791F;
+  --c-mindset:#7B4FD6; --c-training:#D2462F; --c-voeding:#4E9A2F; --c-slaap:#2F7FB8; --c-geld:#C99A12; --c-focus:#E0662B; --c-relaties:#C2417F; --c-werk:#3A6C7A; --c-overig:#7A8794;
+  --f-display:"Bricolage Grotesque", "Avenir Next", system-ui, sans-serif;
+  --f-body:"Atkinson Hyperlegible", system-ui, -apple-system, sans-serif;
+  --f-mono:"JetBrains Mono", ui-monospace, Menlo, monospace;
+  --r:10px;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0E141A; --card:#17202A; --ink:#E7ECF1; --muted:#93A0AD; --line:#27323D; --accent:#7D9BFF; --accent-ink:#0E141A; --soft:#1E2A44; --ok:#4CC08A; --warn:#E3AE4F;
+  --c-mindset:#A585F0; --c-training:#F0745F; --c-voeding:#7CC45B; --c-slaap:#5FAEE6; --c-geld:#E6C04A; --c-focus:#F49157; --c-relaties:#E474A9; --c-werk:#6FA6B5; --c-overig:#98A4B0;
+  color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0E141A; --card:#17202A; --ink:#E7ECF1; --muted:#93A0AD; --line:#27323D; --accent:#7D9BFF; --accent-ink:#0E141A; --soft:#1E2A44; --ok:#4CC08A; --warn:#E3AE4F;
+  --c-mindset:#A585F0; --c-training:#F0745F; --c-voeding:#7CC45B; --c-slaap:#5FAEE6; --c-geld:#E6C04A; --c-focus:#F49157; --c-relaties:#E474A9; --c-werk:#6FA6B5; --c-overig:#98A4B0;
+  color-scheme:dark}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:16px;line-height:1.5;-webkit-tap-highlight-color:transparent}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--bg)}
+.wrap{max-width:640px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:20px calc(96px + env(safe-area-inset-bottom,0px))}
+h1,h2,h3{font-family:var(--f-display);text-wrap:balance;margin:0;letter-spacing:-.01em}
+h1{font-size:2rem;font-weight:800;line-height:1.05}
+h2{font-size:1.3rem;font-weight:700}
+h3{font-size:1.05rem;font-weight:700;line-height:1.25}
+p{margin:0}
+.eyebrow{font-family:var(--f-mono);font-size:.7rem;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+.muted{color:var(--muted)}
+.stack{display:flex;flex-direction:column;gap:12px}
+.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.between{justify-content:space-between}
+header.top{display:flex;justify-content:space-between;align-items:flex-end;gap:12px;margin-bottom:18px}
+.section{display:flex;flex-direction:column;gap:12px;margin-top:26px}
+.panel{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:16px;min-width:0}
+.panel.accent{background:var(--soft);border-color:transparent}
+button,.btn{font:inherit;cursor:pointer;border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:999px;padding:9px 16px;font-weight:700;font-size:.92rem}
+button.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+button.ghost{background:transparent}
+button.small{padding:5px 11px;font-size:.8rem}
+button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+button:disabled{opacity:.45;cursor:default}
+input,textarea,select{font:inherit;color:var(--ink);background:var(--card);border:1px solid var(--line);border-radius:8px;padding:10px 12px;width:100%}
+textarea{min-height:96px;resize:vertical}
+label{font-weight:700;font-size:.9rem;display:flex;flex-direction:column;gap:6px}
+/* indexkaart */
+.card{position:relative;background:var(--card);border:1px solid var(--line);border-radius:4px var(--r) var(--r) var(--r);padding:14px 16px 14px;margin-top:12px;min-width:0}
+.card .tab{position:absolute;top:-11px;left:-1px;height:12px;padding:0 10px;border-radius:6px 6px 0 0;font-family:var(--f-mono);font-size:.6rem;line-height:12px;letter-spacing:.1em;text-transform:uppercase;color:#fff;background:var(--cat)}
+.card .meta{display:flex;justify-content:space-between;gap:8px;font-family:var(--f-mono);font-size:.7rem;color:var(--muted);margin-bottom:6px}
+.card .wisdom{font-family:var(--f-display);font-weight:700;font-size:1.08rem;line-height:1.3}
+.card .action{margin-top:8px;font-size:.92rem;padding-left:10px;border-left:3px solid var(--cat)}
+.card details{margin-top:8px}
+.card summary{cursor:pointer;color:var(--muted);font-size:.85rem}
+.raw{white-space:pre-wrap;font-size:.85rem;color:var(--muted);margin-top:6px;overflow-wrap:anywhere}
+.pill{display:inline-flex;align-items:center;gap:5px;font-family:var(--f-mono);font-size:.68rem;letter-spacing:.06em;text-transform:uppercase;padding:3px 8px;border-radius:999px;border:1px solid var(--line);color:var(--muted);white-space:nowrap}
+.pill.nu{border-color:var(--accent);color:var(--accent)}
+.pill.actief{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.pill.klaar{background:var(--ok);border-color:var(--ok);color:#fff}
+.chips{display:flex;gap:6px;overflow-x:auto;padding-bottom:4px;scrollbar-width:none}
+.chips::-webkit-scrollbar{display:none}
+.chip{flex:none;border-radius:999px;padding:6px 12px;font-size:.82rem;font-weight:700;border:1px solid var(--line);background:var(--card);color:var(--ink)}
+.chip[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.chip .dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--cat);margin-right:6px}
+/* vandaag */
+.habit{display:grid;grid-template-columns:auto 1fr;gap:12px;align-items:start}
+.check{width:46px;height:46px;border-radius:50%;border:2px solid var(--cat);background:transparent;display:grid;place-items:center;padding:0;color:var(--cat);font-size:1.3rem}
+.check[aria-pressed="true"]{background:var(--cat);color:#fff}
+.dots{display:grid;grid-template-columns:repeat(21,1fr);gap:3px;margin-top:10px}
+.dots i{height:6px;border-radius:2px;background:var(--line)}
+.dots i.on{background:var(--cat)}
+.progress{height:6px;background:var(--line);border-radius:3px;overflow:hidden}
+.progress>i{display:block;height:100%;background:var(--accent)}
+/* reis */
+.journey{list-style:none;margin:0;padding:0;display:flex;flex-direction:column}
+.step{display:grid;grid-template-columns:34px 1fr;gap:12px;position:relative;padding-bottom:18px}
+.step:not(:last-child)::before{content:"";position:absolute;left:16px;top:34px;bottom:0;width:2px;background:var(--line)}
+.step .n{width:34px;height:34px;border-radius:50%;border:2px solid var(--line);display:grid;place-items:center;font-family:var(--f-mono);font-weight:600;font-size:.85rem;background:var(--bg);color:var(--muted)}
+.step.done .n{background:var(--ok);border-color:var(--ok);color:#fff}
+.step.now .n{border-color:var(--accent);color:var(--accent);box-shadow:0 0 0 4px var(--soft)}
+.step.now .panel{border-color:var(--accent)}
+.stat{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.stat div{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:10px;text-align:left}
+.stat b{display:block;font-family:var(--f-display);font-size:1.5rem;font-variant-numeric:tabular-nums;line-height:1}
+.stat span{font-size:.72rem;color:var(--muted)}
+.bar{display:grid;grid-template-columns:96px 1fr 28px;gap:8px;align-items:center;font-size:.85rem}
+.bar .track{height:8px;background:var(--line);border-radius:4px;overflow:hidden}
+.bar .track i{display:block;height:100%;background:var(--cat)}
+.bar .num{font-family:var(--f-mono);font-size:.75rem;text-align:right;color:var(--muted)}
+/* tabbar */
+nav.tabs{position:fixed;left:0;right:0;bottom:0;z-index:20;background:var(--card);border-top:1px solid var(--line);display:grid;grid-template-columns:repeat(4,1fr);padding-bottom:env(safe-area-inset-bottom,0px);padding-left:env(safe-area-inset-left,0px);padding-right:env(safe-area-inset-right,0px)}
+nav.tabs button{border:0;border-radius:0;background:transparent;padding:10px 4px 12px;display:flex;flex-direction:column;align-items:center;gap:3px;font-size:.72rem;color:var(--muted);font-weight:700}
+nav.tabs button svg{width:22px;height:22px}
+nav.tabs button[aria-current="page"]{color:var(--accent)}
+.sheet-bg{position:fixed;inset:0;z-index:30;background:rgba(10,14,20,.45);display:flex;align-items:flex-end;justify-content:center}
+.sheet{background:var(--bg);width:100%;max-width:640px;max-height:92%;overflow:auto;border-radius:16px 16px 0 0;padding:18px max(16px,env(safe-area-inset-left,0px)) calc(24px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-right,0px))}
+.banner{font-size:.88rem;padding:10px 12px;border-radius:8px;background:var(--soft);border:1px dashed var(--accent)}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(84px + env(safe-area-inset-bottom,0px));background:var(--ink);color:var(--bg);padding:9px 16px;border-radius:999px;font-size:.88rem;z-index:40;font-weight:700}
+.empty{text-align:center;padding:28px 12px;color:var(--muted)}
+.q{font-family:var(--f-display);font-weight:700;font-size:1.15rem;line-height:1.3}
+.why{font-size:.85rem;color:var(--muted)}
+@media (prefers-reduced-motion:no-preference){.check{transition:background .15s, transform .15s}.check:active{transform:scale(.92)}}
+</style>
+
+<div class="wrap" id="app"></div>
+<nav class="tabs" id="tabs" aria-label="Hoofdmenu"></nav>
+<div id="layer"></div>
+
+<script>
+(function(){
+"use strict";
+/* ---------------- categorieën ---------------- */
+const CATS = {
+  mindset:{naam:"Mindset",kw:["mindset","discipline","identiteit","identity","belief","overtuiging","manifest","gedachte","thought","angst","fear","confidence","zelfvertrouwen","ego","stoic","stoïc","dankbaar","grateful","gratitude","visualis","affirm","comfort zone","comfortzone","mentaal","mental"]},
+  training:{naam:"Training",kw:["training","workout","gym","kracht","strength","squat","deadlift","bench","crossfit","spier","muscle","hypertroph","sets","reps","cardio","zone 2","zone2","mobility","mobiliteit","stretch","pull-up","pullup","core","conditie","vo2"]},
+  voeding:{naam:"Voeding",kw:["eiwit","protein","voeding","nutrition","diet","dieet","calorie","suiker","sugar","carb","koolhydra","vasten","fasting","creatine","supplement","magnesium","ontbijt","breakfast","maaltijd","meal","vezels","fiber","omega","water drinken","hydrat","alcohol","vitamine","vitamin"]},
+  slaap:{naam:"Slaap & herstel",kw:["slaap","sleep","herstel","recovery","cafeïne","cafeine","caffeine","koffie","melatonin","nachtdienst","night shift","ochtendlicht","daglicht","sunlight","ademhal","breath","stress","cortisol","sauna","koud","cold plunge","ijsbad","dutje","nap","circadi","hrv","rustdag"]},
+  geld:{naam:"Geld & beleggen",kw:["geld","money","invest","beleg","crypto","bitcoin","btc","etf","trading","trade","dca","rente","interest","compound","vermogen","wealth","sparen","saving","budget","inkomen","income","passief","passive","aandeel","stock","portfolio","schuld","debt","financ","box 3","buffett","munger","markt","market","koers","kopen","verkopen"]},
+  focus:{naam:"Focus & gewoontes",kw:["focus","productiv","gewoonte","habit","routine","ochtendroutine","morning","deep work","email","e-mail","inbox","uitstel","procrastin","telefoon","phone","dopamine","doelen","goals","to-do","todo","planning","prioriteit","priorit","time block","tijdblok","notities","journal","dagboek","wekker","alarm","opstaan","wake up","uitstellen"]},
+  relaties:{naam:"Relaties & vaderschap",kw:["relatie","relationship","dochter","daughter","kinderen","kids","ouder","parent","vader","father","dad","liefde","love","vriend","friend","communicat","luister","listen","dating","partner","familie","family","empathie","grens","boundar"]},
+  werk:{naam:"Werk & groei",kw:["werk","work","carrière","career","zzp","freelance","ondernem","entrepreneur","business","klant","client","onderhandel","negotiat","leider","leader","skill","leren","learn","boek","book","collega","sales","marketing","netwerk"]},
+  overig:{naam:"Overig",kw:[]}
+};
+const CAT_KEYS = Object.keys(CATS);
+const ACTION_RX = /\b(elke dag|iedere dag|dagelijks|every day|daily|per dag|per week|x per week|keer per|minuten|minutes|min\b|seconden|seconds|uur voor|hours before|doe |do |start|stop|begin|schrijf|write|drink|loop|walk|eet|eat|vermijd|avoid|plan|zet |set |maak |make |lees|read|probeer|try|neem|take|koop|buy|houd|hold|verkoop|sell|zeg|say|vraag|ask|bel|call|ga |go |train|tel |count|sta op|get up|als je|when you|voordat|before|na het|after)\b/i;
+
+/* ---------------- vragen ---------------- */
+const QUESTIONS = [
+  {id:"focus",type:"cat",q:"Welk levensgebied wil je de komende 90 dagen het meest laten groeien?",why:"Wijsheden uit dit gebied krijgen voorrang bij het kiezen."},
+  {id:"anker_dienst",q:"Wat doe je op een werkdag (dienst) altijd, zonder erbij na te denken?",why:"Daar haak je een nieuwe gewoonte aan. Bijvoorbeeld: koffie zetten, omkleden, de auto in.",ph:"Bijv. eerste koffie om 06:15"},
+  {id:"anker_vrij",q:"En op een vrije dag: wat is je vaste moment?",why:"Twee ankers zorgen dat je gewoonte je wisselende diensten overleeft.",ph:"Bijv. na de training, douchen"},
+  {id:"minuten",type:"choice",opts:["5 minuten","10 minuten","20 minuten"],q:"Hoeveel minuten per dag wil je echt aan nieuwe gewoontes geven?",why:"Minder is beter. Wat je elke dag doet wint van wat je soms doet."},
+  {id:"blokkade",q:"Wat houdt je nu tegen om dingen die je opslaat ook te doen?",why:"Eerlijk antwoord = de juiste oplossing. Te veel tegelijk? Geen vast moment? Vergeten?"},
+  {id:"bewijs",q:"Welke opgeslagen video heb je al eens toegepast, en wat werkte daaraan?",why:"Wat al werkte is je blauwdruk voor de rest."},
+  {id:"visie",q:"Hoe ziet een geslaagde dinsdag eruit over 3 maanden?",why:"Concreet beeld = richting. Schrijf het in de tegenwoordige tijd."},
+  {id:"maatje",q:"Wie mag je hierop aanspreken?",why:"Eén persoon die het weet verdubbelt de kans dat je volhoudt.",ph:"Bijv. Juna, een collega, een trainingsmaatje"}
+];
+
+/* ---------------- voorbeelden ---------------- */
+const EXAMPLES = [
+  "Andrew Huberman – ochtendlicht\nBinnen 30-60 minuten na wakker worden 10 minuten daglicht in je ogen. Zet je slaapritme vast, ook na nachtdiensten. Geen zonnebril.",
+  "Wacht 90 minuten met koffie\nCafeïne direct na wakker worden geeft een dip in de middag. Drink eerst water, koffie pas na 90 min.",
+  "Compound interest uitleg\nDe 8e wereldwonder. €200 per maand DCA in een wereld-ETF vanaf je 46e: elke maand automatisch, nooit timen. Tijd in de markt > timing.",
+  "2 minuten regel – James Clear\nMaak een nieuwe gewoonte zo klein dat hij minder dan 2 minuten kost. Start: schrijf 1 zin in je dagboek na het tandenpoetsen.",
+  "Inbox zero in 15 min\nCheck email maar 2 keer per dag op vaste tijden. Alles wat < 2 min kost: direct doen. Rest: archiveren of plannen.",
+  "Luister naar je kinderen\nStel elke dag één open vraag aan je kind en luister zonder telefoon. 'Wat was het beste van je dag?'",
+  "Zone 2 cardio\n3x per week 45 minuten zone 2 (je kunt nog praten). Bouwt mitochondriën en herstel tussen zware sessies.",
+  "Stoïcijnse avondvraag\nVraag jezelf voor het slapen: wat ging goed, wat kon beter, wat doe ik morgen anders? Schrijf het op."
+];
+
+/* ---------------- opslag ---------------- */
+const KEY="reeds.kennis.v1";
+let S = load();
+function blank(){return {notes:[],answers:{},checks:{},tab:"vandaag",filter:"alle",seq:0,sortDone:false,reviews:{}}}
+function load(){
+  try{const raw=localStorage.getItem(KEY); if(raw){const s=Object.assign(blank(),JSON.parse(raw)); return s;}}catch(e){}
+  const s=blank(); EXAMPLES.forEach(t=>addNote(s,t,true)); return s;
+}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
+
+/* ---------------- analyse ---------------- */
+function clean(t){return String(t||"").replace(/https?:\/\/\S+/g,"").replace(/#[\p{L}\d_]+/gu,"").replace(/@[\w.]+/g,"").replace(/[ \t]+/g," ").trim()}
+function sentences(t){return clean(t).split(/(?<=[.!?])\s+|\n+/).map(s=>s.trim().replace(/^[-•*\d.)\s]+/,"")).filter(s=>s.length>3)}
+function catScores(t){
+  const l=" "+t.toLowerCase()+" "; const sc={};
+  CAT_KEYS.forEach(k=>{sc[k]=CATS[k].kw.reduce((n,w)=>n+(l.includes(w)?1:0),0)});
+  return sc;
+}
+function guessCat(t){const sc=catScores(t);let best="overig",b=0;CAT_KEYS.forEach(k=>{if(sc[k]>b){b=sc[k];best=k}});return best}
+function extract(raw){
+  const lines=clean(raw).split(/\n+/).map(x=>x.trim()).filter(Boolean);
+  const title=(lines[0]||"Zonder titel").replace(/^[-•*\s]+/,"").slice(0,90);
+  const ss=sentences(lines.slice(1).join("\n")||lines.join("\n"));
+  const act=ss.find(s=>ACTION_RX.test(s));
+  const wis=ss.find(s=>s!==act&&s.length>12)||ss[0]||title;
+  return {title,wisdom:wis.slice(0,200),action:act?act.slice(0,200):""};
+}
+function scoreNote(n){
+  let s=0; const t=n.raw;
+  if(n.action) s+=3;
+  if(/\d/.test(t)) s+=1;
+  if(ACTION_RX.test(t)) s+=1;
+  if(t.length<500) s+=1;
+  if(S && S.answers && S.answers.focus===n.cat) s+=3;
+  if(n.cat==="overig") s-=1;
+  return s;
+}
+function prio(n){const s=scoreNote(n); return s>=6?"nu":s>=4?"later":"inspiratie"}
+const PRIO_LABEL={nu:"Integreer nu",later:"Later",inspiratie:"Inspiratie"};
+function addNote(s,raw,ex){
+  raw=String(raw||"").trim(); if(raw.length<4) return null;
+  const e=extract(raw); s.seq=(s.seq||0)+1;
+  const n={id:"n"+Date.now().toString(36)+Math.random().toString(36).slice(2,6),nr:s.seq,raw,title:e.title,wisdom:e.wisdom,action:e.action,cat:guessCat(raw),status:"nieuw",anchor:"",added:today(),ex:!!ex};
+  s.notes.push(n); return n;
+}
+
+/* ---------------- datum ---------------- */
+function today(d){d=d||new Date();return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0")}
+function daysDone(id){return Object.keys(S.checks).filter(d=>(S.checks[d]||[]).includes(id)).length}
+function doneToday(id){return (S.checks[today()]||[]).includes(id)}
+function streak(id){let c=0;const d=new Date();if(!doneToday(id))d.setDate(d.getDate()-1);for(;;){if((S.checks[today(d)]||[]).includes(id)){c++;d.setDate(d.getDate()-1)}else break}return c}
+
+/* ---------------- helpers ---------------- */
+const $=s=>document.querySelector(s);
+function esc(s){return String(s==null?"":s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c]))}
+function catStyle(k){return `style="--cat:var(--c-${k})"`}
+function toast(m){document.querySelectorAll(".toast").forEach(x=>x.remove());const t=document.createElement("div");t.className="toast";t.textContent=m;document.body.appendChild(t);setTimeout(()=>t.remove(),2200)}
+const active=()=>S.notes.filter(n=>n.status==="actief");
+const real=()=>S.notes.filter(n=>!n.ex);
+const hasEx=()=>S.notes.some(n=>n.ex);
+const MAXACT=3;
+
+/* ---------------- reis ---------------- */
+function journey(){
+  const ns=S.notes, act=active(), integ=ns.filter(n=>n.status==="geintegreerd");
+  const answered=QUESTIONS.filter(q=>S.answers[q.id]).length;
+  const steps=[
+    {t:"Verzamel alles",d:"Zet al je opgeslagen video-notities in de app. Plakken of bestanden uploaden.",done:real().length>0,cta:"Importeer notities",go:()=>openImport()},
+    {t:"Beantwoord de vragen",d:"Je antwoorden bepalen welke wijsheden voorrang krijgen en waar je ze aan vastmaakt.",done:answered>=4,info:answered+"/"+QUESTIONS.length+" beantwoord",cta:"Naar de vragen",go:()=>setTab("vragen")},
+    {t:"Sorteer & schaaf",d:"Loop de kaarten na: klopt de categorie, en staat de wijsheid in één zin? Overig leeg maken.",done:S.sortDone||(ns.length>0&&!ns.some(n=>n.cat==="overig"&&n.status==="nieuw")),cta:"Bekijk wijsheden",go:()=>setTab("wijsheden")},
+    {t:"Kies er maximaal 3",d:"Uit de stapel 'Integreer nu'. Drie tegelijk is het maximum; meer = niks.",done:act.length>0||integ.length>0,info:act.length+"/"+MAXACT+" actief",cta:"Kies wijsheden",go:()=>{S.filter="nu";setTab("wijsheden")}},
+    {t:"Veranker aan een vast moment",d:"'Na [vast moment] doe ik [actie].' Gebruik je ankers uit de vragen.",done:act.length>0&&act.every(n=>n.anchor),cta:"Anker instellen",go:()=>{const n=act.find(x=>!x.anchor);if(n)openEdit(n.id);else setTab("vandaag")}},
+    {t:"21 dagen afvinken",d:"Elke dag één tik in Vandaag. Na 21 keer is het van jou en komt er een plek vrij.",done:integ.length>0,info:act.length?Math.max(...act.map(n=>daysDone(n.id)))+"/21 dagen":"",cta:"Naar vandaag",go:()=>setTab("vandaag")},
+    {t:"Wekelijkse review",d:"Zondag 5 minuten: wat werkte, wat parkeer je, wat komt erbij?",done:Object.keys(S.reviews||{}).length>0,cta:"Start review",go:()=>openReview()}
+  ];
+  let nowSet=false; steps.forEach(s=>{if(!s.done&&!nowSet){s.now=true;nowSet=true}});
+  return steps;
+}
+
+/* ---------------- render ---------------- */
+const ICONS={
+  vandaag:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>',
+  wijsheden:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M6 7V5h12v2M8 12h8M8 16h5"/></svg>',
+  reis:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="6" cy="19" r="2"/><circle cx="18" cy="5" r="2"/><path d="M8 19h7a3 3 0 0 0 0-6H9a3 3 0 0 1 0-6h7"/></svg>',
+  vragen:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12z"/><path d="M9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.6.3-1 .8-1 1.5M12 16.5h.01"/></svg>'
+};
+const TABS=[["vandaag","Vandaag"],["wijsheden","Wijsheden"],["reis","Reis"],["vragen","Vragen"]];
+function setTab(t){S.tab=t;save();render();window.scrollTo(0,0)}
+function renderTabs(){
+  $("#tabs").innerHTML=TABS.map(([k,l])=>`<button data-tab="${k}" ${S.tab===k?'aria-current="page"':''}>${ICONS[k]}${l}</button>`).join("");
+}
+function render(){
+  renderTabs();
+  const v={vandaag:vVandaag,wijsheden:vWijsheden,reis:vReis,vragen:vVragen}[S.tab]||vVandaag;
+  $("#app").innerHTML=v();
+}
+function exBanner(){return hasEx()?`<p class="banner">Je ziet nu <b>voorbeeldkaarten</b>. Zodra je je eigen notities importeert, verdwijnen ze. <button class="small primary" data-act="import">Importeer</button></p>`:""}
+
+function greet(){const h=new Date().getHours();return h<6?"Goedenacht":h<12?"Goedemorgen":h<18?"Goedemiddag":"Goedenavond"}
+function dateLabel(){return new Date().toLocaleDateString("nl-NL",{weekday:"long",day:"numeric",month:"long"})}
+
+function vVandaag(){
+  const act=active(); const st=journey(); const now=st.find(s=>s.now);
+  const q=QUESTIONS.find(q=>!S.answers[q.id]);
+  const doneN=act.filter(n=>doneToday(n.id)).length;
+  let h=`<header class="top"><div><p class="eyebrow">${esc(dateLabel())}</p><h1>${greet()}, Jaap</h1></div><button class="small ghost" data-act="settings" aria-label="Instellingen">Instellingen</button></header>`;
+  h+=exBanner();
+  h+=`<div class="section"><div class="row between"><h2>Vandaag doen</h2><span class="pill ${act.length&&doneN===act.length?'klaar':''}">${doneN}/${act.length} gedaan</span></div>`;
+  if(!act.length){
+    h+=`<div class="panel empty"><p>Nog geen actieve wijsheden.</p><p style="margin-top:6px">Kies er 1 tot 3 uit de stapel <b>Integreer nu</b>.</p><div style="margin-top:12px"><button class="primary" data-act="kies">Kies je eerste wijsheid</button></div></div>`;
+  } else act.forEach(n=>{
+    const d=daysDone(n.id), on=doneToday(n.id);
+    h+=`<div class="card" ${catStyle(n.cat)}><span class="tab">${esc(CATS[n.cat].naam)}</span>
+      <div class="habit"><button class="check" data-check="${n.id}" aria-pressed="${on}" aria-label="Vandaag gedaan: ${esc(n.title)}">${on?"✓":""}</button>
+      <div style="min-width:0"><p class="wisdom">${esc(n.action||n.wisdom)}</p>
+      <p class="muted" style="font-size:.85rem;margin-top:4px">${n.anchor?"Na <b>"+esc(n.anchor)+"</b>":'<a href="#" data-edit="'+n.id+'">Kies een anker →</a>'} · ${d}/21 dagen · reeks ${streak(n.id)}</p></div></div>
+      <div class="dots" aria-hidden="true">${Array.from({length:21},(_,i)=>`<i class="${i<d?'on':''}"></i>`).join("")}</div></div>`;
+  });
+  h+=`</div>`;
+  if(now) h+=`<div class="section"><p class="eyebrow">Volgende stap op je reis</p><div class="panel accent stack"><h3>${esc(now.t)}</h3><p>${esc(now.d)}</p><div><button class="primary" data-step="${st.indexOf(now)}">${esc(now.cta)}</button></div></div></div>`;
+  if(q) h+=`<div class="section"><p class="eyebrow">Vraag van vandaag</p><div class="panel stack"><p class="q">${esc(q.q)}</p><p class="why">${esc(q.why)}</p>${qInput(q)}<div><button class="primary small" data-saveq="${q.id}">Bewaar antwoord</button></div></div></div>`;
+  const ns=S.notes, nu=ns.filter(n=>n.status==="nieuw"&&prio(n)==="nu").length;
+  h+=`<div class="section"><p class="eyebrow">Je kennisbank</p><div class="stat">
+    <div><b>${ns.length}</b><span>video's</span></div><div><b>${nu}</b><span>integreer nu</span></div>
+    <div><b>${act.length}</b><span>actief</span></div><div><b>${ns.filter(n=>n.status==="geintegreerd").length}</b><span>van jou</span></div></div></div>`;
+  return h;
+}
+
+function cardHTML(n,mode){
+  const p=prio(n); const d=daysDone(n.id);
+  const st=n.status==="actief"?'<span class="pill actief">Actief · '+d+'/21</span>':n.status==="geintegreerd"?'<span class="pill klaar">Van jou</span>':n.status==="geparkeerd"?'<span class="pill">Geparkeerd</span>':`<span class="pill ${p==="nu"?"nu":""}">${PRIO_LABEL[p]}</span>`;
+  const canAct=n.status!=="actief"&&n.status!=="geintegreerd";
+  return `<div class="card" ${catStyle(n.cat)}><span class="tab">${esc(CATS[n.cat].naam)}</span>
+    <div class="meta"><span>#${String(n.nr).padStart(3,"0")}${n.ex?" · voorbeeld":""}</span>${st}</div>
+    <h3>${esc(n.title)}</h3>
+    <p class="wisdom" style="margin-top:6px;font-size:1rem;font-weight:500;font-family:var(--f-body)">${esc(n.wisdom)}</p>
+    ${n.action?`<p class="action"><b>Actie:</b> ${esc(n.action)}</p>`:`<p class="action muted">Nog geen concrete actie. Tik op Bewerk en formuleer er één.</p>`}
+    <details><summary>Originele notitie</summary><p class="raw">${esc(n.raw)}</p></details>
+    <div class="row" style="margin-top:10px">
+      ${canAct?`<button class="small primary" data-activate="${n.id}">Integreer</button>`:""}
+      <button class="small" data-edit="${n.id}">Bewerk</button>
+      ${n.status==="nieuw"?`<button class="small ghost" data-park="${n.id}">Parkeer</button>`:""}
+      ${n.status==="actief"?`<button class="small ghost" data-park="${n.id}">Stop</button>`:""}
+    </div></div>`;
+}
+function vWijsheden(){
+  const f=S.filter||"alle"; let ns=S.notes.slice();
+  const counts={}; CAT_KEYS.forEach(k=>counts[k]=ns.filter(n=>n.cat===k).length);
+  const filters=[["alle","Alle",ns.length],["nu","Integreer nu",ns.filter(n=>n.status==="nieuw"&&prio(n)==="nu").length],["actief","Actief",active().length]].concat(CAT_KEYS.filter(k=>counts[k]).map(k=>[k,CATS[k].naam,counts[k]]));
+  if(f==="nu") ns=ns.filter(n=>n.status==="nieuw"&&prio(n)==="nu");
+  else if(f==="actief") ns=ns.filter(n=>n.status==="actief");
+  else if(CATS[f]) ns=ns.filter(n=>n.cat===f);
+  const order={actief:0,nieuw:1,geintegreerd:2,geparkeerd:3};
+  ns.sort((a,b)=>(order[a.status]-order[b.status])||(scoreNote(b)-scoreNote(a)));
+  let h=`<header class="top"><div><p class="eyebrow">${S.notes.length} video's · ${CAT_KEYS.filter(k=>counts[k]).length} categorieën</p><h1>Wijsheden</h1></div><button class="primary small" data-act="import">+ Importeer</button></header>`;
+  h+=exBanner();
+  h+=`<div class="chips" role="toolbar" aria-label="Filter" style="margin-top:12px">${filters.map(([k,l,c])=>`<button class="chip" data-filter="${k}" aria-pressed="${f===k}" ${CATS[k]?catStyle(k):""}>${CATS[k]?'<span class="dot"></span>':""}${esc(l)} ${c}</button>`).join("")}</div>`;
+  if(f==="nu") h+=`<div class="panel accent" style="margin-top:12px"><p><b>Waarom deze?</b> Ze bevatten een concrete actie (tijd, hoeveelheid of moment)${S.answers.focus?" of horen bij je focusgebied <b>"+esc(CATS[S.answers.focus].naam)+"</b>":""}. Kies er maximaal ${MAXACT}; nu actief: ${active().length}.</p></div>`;
+  h+=`<div class="stack" style="margin-top:8px">${ns.length?ns.map(n=>cardHTML(n)).join(""):'<div class="panel empty">Niets in deze stapel.</div>'}</div>`;
+  return h;
+}
+
+function vReis(){
+  const st=journey(); const done=st.filter(s=>s.done).length;
+  const ns=S.notes; const max=Math.max(1,...CAT_KEYS.map(k=>ns.filter(n=>n.cat===k).length));
+  let h=`<header class="top"><div><p class="eyebrow">${done} van ${st.length} stappen</p><h1>Jouw reis</h1></div></header>`;
+  h+=`<div class="progress" aria-label="Voortgang"><i style="width:${Math.round(done/st.length*100)}%"></i></div>`;
+  h+=`<p class="muted" style="margin-top:12px">Van opgeslagen video naar iets wat je gewoon dóét. Eén stap tegelijk; de app laat zien waar je nu bent.</p>`;
+  h+=`<ol class="journey" style="margin-top:18px">${st.map((s,i)=>`<li class="step ${s.done?"done":""} ${s.now?"now":""}"><span class="n">${s.done?"✓":i+1}</span><div class="panel stack" style="gap:6px"><div class="row between"><h3>${esc(s.t)}</h3>${s.info?`<span class="pill">${esc(s.info)}</span>`:""}</div><p class="muted" style="font-size:.92rem">${esc(s.d)}</p>${s.now?`<div><button class="primary small" data-step="${i}">${esc(s.cta)}</button></div>`:""}</div></li>`).join("")}</ol>`;
+  h+=`<div class="section"><h2>Waar je kennis zit</h2><div class="panel stack" style="gap:10px">${CAT_KEYS.filter(k=>ns.some(n=>n.cat===k)).map(k=>{const c=ns.filter(n=>n.cat===k).length;return `<div class="bar" ${catStyle(k)}><span>${esc(CATS[k].naam)}</span><span class="track"><i style="width:${c/max*100}%"></i></span><span class="num">${c}</span></div>`}).join("")||'<p class="muted">Nog leeg.</p>'}</div></div>`;
+  h+=`<div class="section"><h2>De regels van dit systeem</h2><div class="panel stack" style="gap:8px">
+    <p><b>1. Maximaal 3 tegelijk.</b> Opslaan voelt als leren, doen is leren.</p>
+    <p><b>2. Elke wijsheid wordt één actie.</b> Geen actie te bedenken? Dan is het inspiratie, geen gewoonte.</p>
+    <p><b>3. Altijd een anker.</b> "Na mijn eerste koffie..." werkt, "vaker" werkt niet.</p>
+    <p><b>4. 21 keer = van jou.</b> Daarna komt er een plek vrij voor de volgende.</p>
+    <p><b>5. Gemist is geen falen.</b> Nooit twee dagen achter elkaar overslaan, dat is de enige regel.</p></div></div>`;
+  return h;
+}
+
+function qInput(q){
+  const v=S.answers[q.id]||"";
+  if(q.type==="cat") return `<select id="q-${q.id}"><option value="">Kies een gebied…</option>${CAT_KEYS.filter(k=>k!=="overig").map(k=>`<option value="${k}" ${v===k?"selected":""}>${esc(CATS[k].naam)}</option>`).join("")}</select>`;
+  if(q.type==="choice") return `<select id="q-${q.id}"><option value="">Kies…</option>${q.opts.map(o=>`<option ${v===o?"selected":""}>${esc(o)}</option>`).join("")}</select>`;
+  return `<textarea id="q-${q.id}" placeholder="${esc(q.ph||"Je antwoord…")}" style="min-height:72px">${esc(v)}</textarea>`;
+}
+function vVragen(){
+  const n=QUESTIONS.filter(q=>S.answers[q.id]).length;
+  let h=`<header class="top"><div><p class="eyebrow">${n} van ${QUESTIONS.length} beantwoord</p><h1>Vragen aan jou</h1></div></header>`;
+  h+=`<p class="muted">Kort antwoorden is prima. Je antwoorden sturen welke wijsheden voorrang krijgen en welke ankers je gebruikt.</p>`;
+  h+=`<div class="stack" style="margin-top:16px">${QUESTIONS.map((q,i)=>`<div class="panel stack"><p class="eyebrow">Vraag ${i+1}${S.answers[q.id]?" · beantwoord":""}</p><p class="q">${esc(q.q)}</p><p class="why">${esc(q.why)}</p>${qInput(q)}<div><button class="small ${S.answers[q.id]?"":"primary"}" data-saveq="${q.id}">${S.answers[q.id]?"Bijwerken":"Bewaar"}</button></div></div>`).join("")}</div>`;
+  return h;
+}
+
+/* ---------------- sheets ---------------- */
+function sheet(html){$("#layer").innerHTML=`<div class="sheet-bg" data-close="1"><div class="sheet" role="dialog" aria-modal="true">${html}</div></div>`}
+function closeSheet(){$("#layer").innerHTML=""}
+function openImport(prefill){
+  sheet(`<div class="stack"><div class="row between"><h2>Importeer notities</h2><button class="small ghost" data-close="1">Sluit</button></div>
+  <p class="muted" style="font-size:.92rem">Eén notitie = één video. Zet tussen notities een regel met <b>---</b>. De eerste regel wordt de titel.</p>
+  <label for="imp-text">Plak hier je notities<textarea id="imp-text" style="min-height:180px" placeholder="Ochtendlicht&#10;10 min daglicht binnen een uur na wakker worden…&#10;---&#10;Volgende video…">${esc(prefill||"")}</textarea></label>
+  <label for="imp-file">Of kies bestanden (.txt, .md, .html, .json)<input id="imp-file" type="file" multiple accept=".txt,.md,.markdown,.html,.htm,.json,text/plain"></label>
+  <details><summary class="muted">Hoe krijg ik mijn notities hier?</summary><div class="raw" style="color:var(--ink)">
+<b>Apple Notities:</b> open een notitie → selecteer alles → kopieer → plak hierboven, typ --- en plak de volgende. Veel notities? Zet ze eerst in één map en gebruik een export-app (bijv. "Exporter") naar .md-bestanden en kies die hier.
+<b>Google Keep:</b> takeout.google.com → Keep → upload de .json-bestanden.
+<b>Samsung/andere:</b> deel als tekst of .txt en kies het bestand.
+<b>Android:</b> na installeren kun je vanuit Instagram of Notities direct "Delen → Reeds" kiezen.</div></details>
+  <div class="row"><button class="primary" data-act="doimport">Importeer en sorteer</button></div></div>`);
+}
+function parseFile(name,text){
+  name=name.toLowerCase();
+  if(name.endsWith(".json")){try{const j=JSON.parse(text);const arr=Array.isArray(j)?j:[j];return arr.map(o=>[o.title,o.textContent||o.text||o.content||(o.listContent||[]).map(x=>x.text).join("\n")].filter(Boolean).join("\n"))}catch(e){return [text]}}
+  if(name.endsWith(".html")||name.endsWith(".htm")){const d=new DOMParser().parseFromString(text,"text/html");d.querySelectorAll("br,p,div,li,h1,h2,h3").forEach(el=>el.insertAdjacentText("afterend","\n"));return [d.body.textContent]}
+  return text.split(/\n\s*(?:---+|===+)\s*\n/);
+}
+async function doImport(){
+  const chunks=[]; const txt=$("#imp-text").value;
+  if(txt.trim()) chunks.push(...txt.split(/\n\s*(?:---+|===+)\s*\n/));
+  const files=$("#imp-file").files;
+  for(const f of files){try{chunks.push(...parseFile(f.name,await f.text()))}catch(e){}}
+  const before=new Set(S.notes.map(n=>n.raw.trim()));
+  const list=chunks.map(c=>String(c||"").trim()).filter(c=>c.length>=4&&!before.has(c));
+  if(!list.length){toast("Niets nieuws gevonden. Plak tekst of kies een bestand.");return}
+  if(hasEx()) S.notes=S.notes.filter(n=>!n.ex);
+  if(!S.notes.length) S.seq=0;
+  list.forEach(c=>addNote(S,c,false));
+  save(); closeSheet(); S.filter="alle"; setTab("wijsheden"); toast(list.length+" notities gesorteerd");
+}
+function anchorOptions(){return [S.answers.anker_dienst,S.answers.anker_vrij,"mijn eerste koffie","het tandenpoetsen 's ochtends","mijn training","thuiskomen na mijn dienst","in bed, voor het slapen"].filter(Boolean)}
+function openEdit(id){
+  const n=S.notes.find(x=>x.id===id); if(!n) return;
+  sheet(`<div class="stack"><div class="row between"><h2>Kaart #${String(n.nr).padStart(3,"0")}</h2><button class="small ghost" data-close="1">Sluit</button></div>
+  <label for="e-title">Titel<input id="e-title" value="${esc(n.title)}"></label>
+  <label for="e-wis">De wijsheid in één zin<textarea id="e-wis" style="min-height:70px">${esc(n.wisdom)}</textarea></label>
+  <label for="e-act">Concrete actie (wat doe je, hoeveel, wanneer)<textarea id="e-act" style="min-height:70px" placeholder="Bijv. 10 min naar buiten na het opstaan">${esc(n.action)}</textarea></label>
+  <label for="e-cat">Categorie<select id="e-cat">${CAT_KEYS.map(k=>`<option value="${k}" ${n.cat===k?"selected":""}>${esc(CATS[k].naam)}</option>`).join("")}</select></label>
+  <label for="e-anc">Anker: na ... doe ik dit<input id="e-anc" list="anc-list" value="${esc(n.anchor)}" placeholder="Bijv. mijn eerste koffie"><datalist id="anc-list">${anchorOptions().map(a=>`<option value="${esc(a)}">`).join("")}</datalist></label>
+  <div class="row"><button class="primary" data-saveedit="${n.id}">Bewaar</button><button class="ghost" data-del="${n.id}">Verwijder kaart</button></div></div>`);
+}
+function openReview(){
+  const act=active();
+  sheet(`<div class="stack"><div class="row between"><h2>Weekreview</h2><button class="small ghost" data-close="1">Sluit</button></div>
+  <p class="muted">5 minuten. Eerlijk is genoeg.</p>
+  ${act.map(n=>`<div class="panel"><p><b>${esc(n.action||n.wisdom)}</b></p><p class="muted" style="font-size:.85rem">${daysDone(n.id)}/21 dagen</p><div class="row" style="margin-top:8px"><button class="small" data-done21="${n.id}">Zit erin, markeer als van mij</button><button class="small ghost" data-park="${n.id}">Werkt niet, parkeer</button></div></div>`).join("")||'<p class="muted">Nog geen actieve wijsheden.</p>'}
+  <label for="r-good">Wat werkte deze week?<textarea id="r-good"></textarea></label>
+  <label for="r-next">Wat pak ik volgende week op?<textarea id="r-next"></textarea></label>
+  <button class="primary" data-act="savereview">Review afronden</button></div>`);
+}
+function openSettings(){
+  sheet(`<div class="stack"><div class="row between"><h2>Instellingen</h2><button class="small ghost" data-close="1">Sluit</button></div>
+  <div class="panel stack"><h3>Back-up</h3><p class="muted" style="font-size:.9rem">Je data staat alleen op dit toestel. Kopieer de back-up af en toe naar je notities of mail.</p>
+  <div class="row"><button class="small" data-act="copybackup">Kopieer back-up</button></div>
+  <label for="bk">Back-up terugzetten (plak hier)<textarea id="bk" style="min-height:70px"></textarea></label><div><button class="small" data-act="restore">Zet terug</button></div></div>
+  <div class="panel stack"><h3>Op je telefoon zetten</h3><p style="font-size:.9rem"><b>iPhone:</b> open de link in Safari → deelknop → Zet op beginscherm.<br><b>Android:</b> Chrome → ⋮ → App installeren.</p></div>
+  <div class="panel stack"><h3>Opnieuw beginnen</h3><p class="muted" style="font-size:.9rem">Wist alle kaarten, antwoorden en vinkjes op dit toestel.</p><div class="row"><button class="small ghost" data-act="askwipe">Wis alles</button><span id="wipe-confirm"></span></div></div></div>`);
+}
+
+/* ---------------- events ---------------- */
+document.addEventListener("click",async e=>{
+  const t=e.target.closest("[data-tab],[data-act],[data-check],[data-activate],[data-edit],[data-park],[data-filter],[data-step],[data-saveq],[data-saveedit],[data-del],[data-done21],[data-close]");
+  if(!t) return;
+  const d=t.dataset;
+  if(d.close&&e.target!==t&&!e.target.closest("button")) return;
+  if(t.tagName==="A") e.preventDefault();
+  if(d.tab) return setTab(d.tab);
+  if(d.close) return closeSheet();
+  if(d.filter){S.filter=d.filter;save();return render()}
+  if(d.step!=null){const s=journey()[+d.step];if(s&&s.go)s.go();return}
+  if(d.check){const k=today();S.checks[k]=S.checks[k]||[];const i=S.checks[k].indexOf(d.check);if(i>=0)S.checks[k].splice(i,1);else{S.checks[k].push(d.check);const n=S.notes.find(x=>x.id===d.check);const c=daysDone(d.check);if(c>=21&&n){n.status="geintegreerd";toast("21 dagen! Deze is van jou. Er is een plek vrij.")}else toast("Gedaan. Dag "+c+"/21")}save();return render()}
+  if(d.activate){if(active().length>=MAXACT){toast("Je hebt al "+MAXACT+" actief. Rond er eerst één af of stop er één.");return}const n=S.notes.find(x=>x.id===d.activate);n.status="actief";save();render();toast("Actief. Kies nu een anker.");return openEdit(n.id)}
+  if(d.edit) return openEdit(d.edit);
+  if(d.park){const n=S.notes.find(x=>x.id===d.park);n.status="geparkeerd";save();closeSheet();render();return toast("Geparkeerd")}
+  if(d.done21){const n=S.notes.find(x=>x.id===d.done21);n.status="geintegreerd";save();closeSheet();render();return toast("Gemarkeerd als van jou")}
+  if(d.del){S.notes=S.notes.filter(x=>x.id!==d.del);save();closeSheet();render();return toast("Kaart verwijderd")}
+  if(d.saveq){const el=document.getElementById("q-"+d.saveq);const v=(el&&el.value||"").trim();if(!v){toast("Vul eerst iets in");return}S.answers[d.saveq]=v;save();render();return toast("Antwoord bewaard")}
+  if(d.saveedit){const n=S.notes.find(x=>x.id===d.saveedit);n.title=$("#e-title").value.trim()||n.title;n.wisdom=$("#e-wis").value.trim();n.action=$("#e-act").value.trim();n.cat=$("#e-cat").value;n.anchor=$("#e-anc").value.trim();save();closeSheet();render();return toast("Bewaard")}
+  const a=d.act;
+  if(a==="import") return openImport();
+  if(a==="doimport") return doImport();
+  if(a==="kies"){S.filter="nu";return setTab("wijsheden")}
+  if(a==="settings") return openSettings();
+  if(a==="savereview"){S.reviews=S.reviews||{};S.reviews[today()]={good:$("#r-good").value,next:$("#r-next").value};save();closeSheet();render();return toast("Review bewaard. Goed bezig.")}
+  if(a==="copybackup"){const txt=JSON.stringify(S);try{await navigator.clipboard.writeText(txt);toast("Back-up gekopieerd")}catch(err){const ta=$("#bk");ta.value=txt;ta.select();toast("Geselecteerd: kopieer handmatig")}return}
+  if(a==="restore"){try{const j=JSON.parse($("#bk").value);if(!Array.isArray(j.notes))throw 0;S=Object.assign(blank(),j);save();closeSheet();render();toast("Back-up teruggezet")}catch(err){toast("Dat is geen geldige back-up")}return}
+  if(a==="askwipe"){$("#wipe-confirm").innerHTML='<button class="small primary" data-act="wipe">Ja, wis alles</button>';return}
+  if(a==="wipe"){S=blank();save();closeSheet();render();return toast("Alles gewist")}
+});
+document.addEventListener("keydown",e=>{if(e.key==="Escape")closeSheet()});
+
+/* gedeelde tekst (Android share target) */
+try{const p=new URLSearchParams(location.search);const shared=[p.get("title"),p.get("text"),p.get("url")].filter(Boolean).join("\n");if(shared){history.replaceState(null,"",location.pathname);setTimeout(()=>openImport(shared),50)}}catch(e){}
+
+render();
+})();
+</script>

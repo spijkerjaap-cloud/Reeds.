@@ -351,25 +351,31 @@ function sheet(html){$("#layer").innerHTML=`<div class="sheet-bg" data-close="1"
 function closeSheet(){$("#layer").innerHTML=""}
 function openImport(prefill){
   sheet(`<div class="stack"><div class="row between"><h2>Importeer notities</h2><button class="small ghost" data-close="1">Sluit</button></div>
-  <p class="muted" style="font-size:.92rem">Eén notitie = één video. Zet tussen notities een regel met <b>---</b>. De eerste regel wordt de titel.</p>
-  <label for="imp-text">Plak hier je notities<textarea id="imp-text" style="min-height:180px" placeholder="Ochtendlicht&#10;10 min daglicht binnen een uur na wakker worden…&#10;---&#10;Volgende video…">${esc(prefill||"")}</textarea></label>
+  <p class="muted" style="font-size:.92rem">Eén notitie = één video. Notities worden gescheiden door <b>---</b>. De eerste regel wordt de titel.</p>
+  <div class="row"><button class="primary" data-act="pasteclip">Plak van klembord</button></div>
+  <label for="imp-text">Of plak hier je notities<textarea id="imp-text" style="min-height:180px" placeholder="Ochtendlicht&#10;10 min daglicht binnen een uur na wakker worden…&#10;---&#10;Volgende video…">${esc(prefill||"")}</textarea></label>
   <label for="imp-file">Of kies bestanden (.txt, .md, .html, .json)<input id="imp-file" type="file" multiple accept=".txt,.md,.markdown,.html,.htm,.json,text/plain"></label>
-  <details><summary class="muted">Hoe krijg ik mijn notities hier?</summary><div class="raw" style="color:var(--ink)">
-<b>Apple Notities:</b> open een notitie → selecteer alles → kopieer → plak hierboven, typ --- en plak de volgende. Veel notities? Zet ze eerst in één map en gebruik een export-app (bijv. "Exporter") naar .md-bestanden en kies die hier.
-<b>Google Keep:</b> takeout.google.com → Keep → upload de .json-bestanden.
-<b>Samsung/andere:</b> deel als tekst of .txt en kies het bestand.
-<b>Android:</b> na installeren kun je vanuit Instagram of Notities direct "Delen → Reeds" kiezen.</div></details>
+  <details open><summary class="muted"><b>iPhone: alle notities in één keer (2 min instellen)</b></summary><ol class="raw" style="color:var(--ink);white-space:normal;padding-left:20px;display:flex;flex-direction:column;gap:6px">
+<li>Zet je Instagram-notities in Notities in één map, bijv. <b>Insta</b>.</li>
+<li>Open de app <b>Opdrachten</b> → <b>+</b> → noem hem <b>Naar Reeds</b>.</li>
+<li>Voeg toe: <b>Zoek notities</b> → filter <i>Map is Insta</i>, limiet uit.</li>
+<li>Voeg toe: <b>Combineer tekst</b> → scheidingsteken <i>Aangepast</i> → typ <b>---</b>.</li>
+<li>Voeg toe: <b>Kopieer naar klembord</b>. Druk op ▶︎.</li>
+<li>Kom terug hier en tik op <b>Plak van klembord</b>.</li></ol></details>
+<details><summary class="muted">Andere manieren</summary><p class="raw" style="color:var(--ink)">Eén notitie: open hem → tik lang → Selecteer alles → Kopieer → plak hierboven. Typ --- tussen twee notities.
+Bestanden: .txt, .md of .html (bijv. via een export-app) kun je hieronder kiezen.</p></details>
   <div class="row"><button class="primary" data-act="doimport">Importeer en sorteer</button></div></div>`);
 }
+function splitNotes(t){return String(t).split(/\s*(?:-{3,}|={3,})\s*/)}
 function parseFile(name,text){
   name=name.toLowerCase();
   if(name.endsWith(".json")){try{const j=JSON.parse(text);const arr=Array.isArray(j)?j:[j];return arr.map(o=>[o.title,o.textContent||o.text||o.content||(o.listContent||[]).map(x=>x.text).join("\n")].filter(Boolean).join("\n"))}catch(e){return [text]}}
   if(name.endsWith(".html")||name.endsWith(".htm")){const d=new DOMParser().parseFromString(text,"text/html");d.querySelectorAll("br,p,div,li,h1,h2,h3").forEach(el=>el.insertAdjacentText("afterend","\n"));return [d.body.textContent]}
-  return text.split(/\n\s*(?:---+|===+)\s*\n/);
+  return splitNotes(text);
 }
 async function doImport(){
   const chunks=[]; const txt=$("#imp-text").value;
-  if(txt.trim()) chunks.push(...txt.split(/\n\s*(?:---+|===+)\s*\n/));
+  if(txt.trim()) chunks.push(...splitNotes(txt));
   const files=$("#imp-file").files;
   for(const f of files){try{chunks.push(...parseFile(f.name,await f.text()))}catch(e){}}
   const before=new Set(S.notes.map(n=>n.raw.trim()));
@@ -431,6 +437,7 @@ document.addEventListener("click",async e=>{
   const a=d.act;
   if(a==="import") return openImport();
   if(a==="doimport") return doImport();
+  if(a==="pasteclip"){try{const t=await navigator.clipboard.readText();if(!t||!t.trim())throw 0;$("#imp-text").value=t;const n=splitNotes(t).filter(x=>x.trim().length>=4).length;toast(n+" notities gevonden. Tik op Importeer.")}catch(err){toast("Klembord niet leesbaar. Tik lang in het vak en kies Plak.");$("#imp-text").focus()}return}
   if(a==="kies"){S.filter="nu";return setTab("wijsheden")}
   if(a==="settings") return openSettings();
   if(a==="savereview"){S.reviews=S.reviews||{};S.reviews[today()]={good:$("#r-good").value,next:$("#r-next").value};save();closeSheet();render();return toast("Review bewaard. Goed bezig.")}
